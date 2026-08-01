@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ТАТУ ТУТ — рабочая станция тату-мастера</title>
+<title>TATTOO TUT — the tattoo artist’s workstation</title>
 <style>
 :root{
   --bg:#f4f1e8; --ink:#0b1208; --ink-2:#3b4636; --line:#ddd7c7;
@@ -214,6 +214,13 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
   font-weight:650;cursor:pointer}
 .tabbar div i{display:block;font-size:19px;font-style:normal;margin-bottom:1px}
 .tabbar div.on{color:var(--ink)}
+.tabbar div.hot{position:relative}
+.tabbar .hotbtn{position:absolute;left:50%;top:-26px;transform:translateX(-50%);
+  width:56px;height:56px;border-radius:50%;background:var(--accent);
+  color:var(--accent-ink);display:grid;place-items:center;font-size:24px;
+  box-shadow:0 6px 22px rgba(196,240,0,.5);border:4px solid var(--bg)}
+.lang{font-family:inherit;font-weight:700;-webkit-appearance:none;appearance:none;
+  padding-right:13px;text-align:center}
 @media(max-width:980px){
   .genwrap{grid-template-columns:1fr}
   .panel{position:static}
@@ -236,9 +243,14 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
       <a onclick="scrollTo(0,0)">Новости</a>
     </nav>
     <div class="right">
-      <span class="pill" id="theme">◐ Тема</span>
-      <span class="pill">⚡ 240 кредитов</span>
-      <button class="btn ghost">Войти</button>
+      <select class="pill lang" id="lang">
+        <option value="en">EN</option><option value="ru">RU</option>
+        <option value="es">ES</option><option value="de">DE</option>
+        <option value="pt">PT</option>
+      </select>
+      <span class="pill" id="theme">◐</span>
+      <span class="pill" data-i="credits">240 credits</span>
+      <button class="btn ghost" data-i="signin">Sign in</button>
     </div>
   </div>
 
@@ -250,24 +262,23 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
 <!-- ═══ ГЛАВНАЯ ═══ -->
 <main id="home">
   <section class="wrap hero">
-    <h1>Мастерская тату-мастера.<br>Целиком в браузере.</h1>
-    <p>Эскиз, трафарет, примерка на теле, 3D-разворот и оживление — всё в одном
-       окне. Машинка остаётся в твоей руке, последнее слово по каждой линии тоже.</p>
+    <h1 data-i="h1">The tattoo artist\u2019s studio.<br>All of it, in your browser.</h1>
+    <p data-i="sub">Sketch, stencil, on-body try-on, 3D turnaround and animation \u2014 one window. The machine stays in your hand, and so does the final say on every line.</p>
     <button class="create" onclick="openSheet()">
-      <span class="plus">+</span> Создать
+      <span class="plus">+</span> <span data-i="create">Create</span>
     </button>
   </section>
 
   <section class="wrap feed">
     <div class="feed-hd">
-      <h2>Что нового</h2><span>обновляется каждую неделю</span>
+      <h2 data-i="whats_new">What\u2019s new</h2><span data-i="weekly">updated every week</span>
     </div>
     <div class="rail" id="feed"></div>
   </section>
 
   <section class="wrap tools-sec">
-    <h2>Инструменты</h2>
-    <div class="sub">Всё, что съедает вечера — эскизы, трафареты, примерки, ролики.</div>
+    <h2 data-i="tools">Tools</h2>
+    <div class="sub" data-i="tools_sub">Everything that eats your evenings \u2014 drafts, stencils, try-ons, clips.</div>
     <div class="grid" id="tools"></div>
   </section>
 
@@ -332,63 +343,63 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
 <!-- выбор функции -->
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
   <div class="box">
-    <h4>Что делаем?</h4>
-    <div class="sub">Выбери — и сразу попадёшь в рабочее окно</div>
+    <h4 data-i="what">What are we making?</h4>
+    <div class="sub" data-i="what_sub">Pick one \u2014 you land straight in the workspace</div>
     <div class="picks" id="picks"></div>
   </div>
 </div>
 
 <div class="tabbar">
-  <div class="on"><i>⌂</i>Главная</div>
-  <div onclick="openSheet()"><i>✳︎</i>Создать</div>
-  <div><i>▦</i>Работы</div>
-  <div><i>◍</i>Мини-аппы</div>
-  <div><i>◐</i>Профиль</div>
+  <div class="on"><i>⌂</i><span data-i="tab_home">Home</span></div>
+  <div><i>◍</i><span data-i="tab_apps">Apps</span></div>
+  <div class="hot" onclick="openSheet()"><span class="hotbtn">✦</span></div>
+  <div><i>▦</i><span data-i="tab_lib">Library</span></div>
+  <div><i>◐</i><span data-i="tab_me">Profile</span></div>
 </div>
 
 <script>
 /* ── данные каркаса ─────────────────────────────────────── */
 const FN = [
-  {id:"sketch", e:"✏️", n:"Создать эскиз",     h:"Идея словами → готовый эскиз", anim:"blob"},
-  {id:"render3d",e:"🧊", n:"3D-разворот",       h:"Крути эскиз и забирай нужный ракурс", anim:"eye", tag:"НОВОЕ"},
-  {id:"light",  e:"💡", n:"Переставить свет",  h:"Тот же эскиз, другое освещение", anim:"sweep", tag:"НОВОЕ"},
-  {id:"stencil",e:"📄", n:"Трафарет",           h:"Чистые линии под перевод", anim:"sweep"},
-  {id:"bigprint",e:"🖨", n:"Большой трансфер",  h:"Спина и рукав — ровно по листам А4", anim:"grid"},
-  {id:"tryon",  e:"🫱", n:"Примерка на теле",   h:"Как ляжет на руку, спину, рёбра", anim:"blob"},
-  {id:"animate",e:"🎬", n:"Оживить тату",       h:"Существо на коже начинает двигаться", anim:"eye"},
-  {id:"extract",e:"🔍", n:"Эскиз из фото",      h:"Вытащить дизайн с чужого снимка", anim:"sweep"},
-  {id:"retouch",e:"✨", n:"Ретушь снимка",      h:"Свет, краснота, чистота — под портфолио", anim:"sweep"},
-  {id:"link",   e:"🔗", n:"Ссылка клиенту",     h:"Он примеряет сам, ты получаешь заявку", anim:"fly"},
+  {id:"sketch", e:"✏️", n:"Create a sketch",  h:"Words in, finished design out", anim:"blob"},
+  {id:"render3d",e:"🧊",n:"3D turnaround",     h:"Spin the design, take the angle you need", anim:"eye", tag:"NEW"},
+  {id:"light",  e:"💡", n:"Relight",           h:"Same design, different light", anim:"sweep", tag:"NEW"},
+  {id:"stencil",e:"📄", n:"Stencil",           h:"Clean lines ready to transfer", anim:"sweep"},
+  {id:"bigprint",e:"🖨",n:"Large transfer",    h:"Backs and sleeves, tiled across A4", anim:"grid"},
+  {id:"tryon",  e:"🫱", n:"Try it on the body", h:"See it on the arm, back, ribs", anim:"blob"},
+  {id:"animate",e:"🎬", n:"Animate the tattoo", h:"The creature on the skin starts moving", anim:"eye"},
+  {id:"extract",e:"🔍", n:"Sketch from a photo",h:"Pull a design out of any shot", anim:"sweep"},
+  {id:"retouch",e:"✨", n:"Retouch the shot",   h:"Light, redness, clarity — portfolio grade", anim:"sweep"},
+  {id:"link",   e:"🔗", n:"Send to the client", h:"They try it on, you get the enquiry", anim:"fly"},
 ];
 
 const FEED = [
-  {k:"Интервью", t:"Драга Павлик — линия, которая растёт как растение",
-   d:"Дания, органический fine-line. О глубинной экологии, фигурном катании и о том, почему тату остаётся делом человека с человеком.",
-   anim:"sweep", badge:"НА ЭТОЙ НЕДЕЛЕ"},
-  {k:"Функция месяца", t:"3D-разворот эскиза",
-   d:"Загружаешь плоский эскиз — получаешь объём. Крутишь мышкой, ловишь ракурс, забираешь эскиз под этим углом в том же стиле.",
-   anim:"eye", badge:"НОВОЕ"},
-  {k:"Акция", t:"Оживление тату — $4.99",
-   d:"Существо на коже двигается. Клиент видит свою будущую работу живой ещё до сеанса.",
-   anim:"blob", badge:"ДО КОНЦА МЕСЯЦА"},
-  {k:"Скоро", t:"Второе интервью серии",
-   d:"Мастер, стиль и разбор приёмов. Готовим к выпуску.",
-   anim:"grid", badge:"ГОТОВИМ", soft:1},
+  {k:"Interview", t:"Draga Pavlik — a line that grows like a plant",
+   d:"Denmark, organic fine-line. On deep ecology, figure skating, and why tattooing stays a human-to-human thing.",
+   anim:"sweep", badge:"THIS WEEK"},
+  {k:"Feature of the month", t:"3D turnaround",
+   d:"Drop in a flat sketch, get volume. Spin it, catch the angle, take the design back in the same style.",
+   anim:"eye", badge:"NEW"},
+  {k:"Deal", t:"Animate a tattoo — $4.99",
+   d:"The creature on the skin moves. Your client sees the piece alive before the session.",
+   anim:"blob", badge:"THIS MONTH"},
+  {k:"Coming", t:"Second interview of the series",
+   d:"An artist, a style, and a breakdown of the craft. In production.",
+   anim:"grid", badge:"SOON", soft:1},
 ];
 
 const MEGA = {
-  sketch:[["Работа с эскизом",[["✏️","Создать эскиз","Идея словами"],["🖌","Править эскиз","Дорисовать, убрать, заменить"],["🔍","Эскиз из фото","Вытащить чужой дизайн"]]],
-          ["Объём и свет",[["🧊","3D-разворот","Крути и лови ракурс","НОВОЕ"],["💡","Переставить свет","Тот же эскиз, другая подача","НОВОЕ"]]],
-          ["Печать",[["📄","Трафарет","Чистые линии"],["🖨","Большой трансфер","Спина и рукав по А4"]]]],
-  body:[["Примерка",[["🫱","Фото-примерка","Как ляжет на тело"],["🎥","Видео-примерка","Рука двигается"]]],
-        ["Клиенту",[["🔗","Ссылка клиенту","Мерит сам"],["📐","Подобрать размер","См и посадка"]]],
-        ["Снимок",[["✨","Ретушь снимка","Под портфолио"]]]],
-  video:[["Ролики",[["🎬","Оживить тату","Существо двигается"],["🎞","Проходка камерой","Кино-подача работы"]]],
-         ["Пресеты",[["⚡","Готовые сцены","Свет, ракурс, движение"]]],
-         ["Публикация",[["📲","Формат под соцсети","9:16 и 1:1"]]]],
-  apps:[["Мини-аппы",[["🧩","Раскрой А4","Любой размер на листы"],["🎨","Палитра работы","Цвета из эскиза"]]],
-        ["Для студии",[["👥","Заявки","Кто примерял и написал"],["📊","Отчёт","Что работает"]]],
-        ["Скоро",[["✳︎","Свой стиль","Обучить модель на своих работах","СКОРО"]]]],
+  sketch:[["Design",[["✏️","Create a sketch","From words"],["🖌","Edit a sketch","Add, remove, replace"],["🔍","Sketch from a photo","Pull out any design"]]],
+          ["Volume & light",[["🧊","3D turnaround","Spin and pick the angle","NEW"],["💡","Relight","Same design, new mood","NEW"]]],
+          ["Print",[["📄","Stencil","Clean lines"],["🖨","Large transfer","Backs and sleeves on A4"]]]],
+  body:[["Try-on",[["🫱","Photo try-on","See it on the body"],["🎥","Video try-on","The arm moves"]]],
+        ["For the client",[["🔗","Send a link","They try it themselves"],["📐","Pick the size","Centimetres and placement"]]],
+        ["The shot",[["✨","Retouch","Portfolio grade"]]]],
+  video:[["Clips",[["🎬","Animate the tattoo","The creature moves"],["🎞","Camera pass","Cinematic reveal"]]],
+         ["Presets",[["⚡","Ready-made scenes","Light, angle, motion"]]],
+         ["Publishing",[["📲","Social formats","9:16 and 1:1"]]]],
+  apps:[["Mini-apps",[["🧩","A4 tiling","Any size across sheets"],["🎨","Palette","Colours from the design"]]],
+        ["For the studio",[["👥","Enquiries","Who tried on and wrote"],["📊","Report","What actually works"]]],
+        ["Coming",[["✳︎","Your own style","Train a model on your work","SOON"]]]],
 };
 
 /* ── отрисовка ──────────────────────────────────────────── */
@@ -468,6 +479,52 @@ window.toggleRotor=()=>{
 document.getElementById("ang").oninput=e=>{
   document.querySelector(".rotor .obj").style.transform=`rotate(${e.target.value}deg)`;
 };
+
+/* ── языки ──────────────────────────────────────────────── */
+const I18N={
+ en:{},
+ ru:{h1:"Мастерская тату-мастера.<br>Целиком в браузере.",
+   sub:"Эскиз, трафарет, примерка на теле, 3D-разворот и оживление — в одном окне. Машинка остаётся в твоей руке, последнее слово по каждой линии тоже.",
+   create:"Создать",whats_new:"Что нового",weekly:"обновляется каждую неделю",
+   tools:"Инструменты",tools_sub:"Всё, что съедает вечера — эскизы, трафареты, примерки, ролики.",
+   what:"Что делаем?",what_sub:"Выбери — и сразу попадёшь в рабочее окно",
+   signin:"Войти",credits:"240 кредитов",tab_home:"Главная",tab_apps:"Аппы",
+   tab_lib:"Работы",tab_me:"Профиль"},
+ es:{h1:"El estudio del tatuador.<br>Todo, en tu navegador.",
+   sub:"Boceto, plantilla, prueba en el cuerpo, giro 3D y animación — en una sola ventana.",
+   create:"Crear",whats_new:"Novedades",weekly:"cada semana",tools:"Herramientas",
+   tools_sub:"Todo lo que se come tus tardes — bocetos, plantillas, pruebas, clips.",
+   what:"¿Qué hacemos?",what_sub:"Elige y entras directo al taller",
+   signin:"Entrar",credits:"240 créditos",tab_home:"Inicio",tab_apps:"Apps",
+   tab_lib:"Trabajos",tab_me:"Perfil"},
+ de:{h1:"Das Studio des Tätowierers.<br>Komplett im Browser.",
+   sub:"Entwurf, Schablone, Anprobe am Körper, 3D-Drehung und Animation — in einem Fenster.",
+   create:"Erstellen",whats_new:"Neu",weekly:"jede Woche",tools:"Werkzeuge",
+   tools_sub:"Alles, was Abende frisst — Entwürfe, Schablonen, Anproben, Clips.",
+   what:"Was machen wir?",what_sub:"Wähle — und du bist direkt im Arbeitsfenster",
+   signin:"Anmelden",credits:"240 Credits",tab_home:"Start",tab_apps:"Apps",
+   tab_lib:"Arbeiten",tab_me:"Profil"},
+ pt:{h1:"O estúdio do tatuador.<br>Tudo no navegador.",
+   sub:"Desenho, stencil, prova no corpo, giro 3D e animação — numa só janela.",
+   create:"Criar",whats_new:"Novidades",weekly:"toda semana",tools:"Ferramentas",
+   tools_sub:"Tudo o que consome suas noites — desenhos, stencils, provas, clipes.",
+   what:"O que vamos criar?",what_sub:"Escolha e entre direto no ateliê",
+   signin:"Entrar",credits:"240 créditos",tab_home:"Início",tab_apps:"Apps",
+   tab_lib:"Trabalhos",tab_me:"Perfil"},
+};
+const EN={};
+document.querySelectorAll("[data-i]").forEach(el=>EN[el.dataset.i]=el.innerHTML);
+function setLang(L){
+  const d=L==="en"?EN:Object.assign({},EN,I18N[L]||{});
+  document.querySelectorAll("[data-i]").forEach(el=>{
+    if(d[el.dataset.i]!==undefined) el.innerHTML=d[el.dataset.i];});
+  document.documentElement.lang=L;
+  try{localStorage.setItem("lang",L)}catch(e){}
+}
+const saved=(()=>{try{return localStorage.getItem("lang")}catch(e){return null}})();
+const L0=saved||"en";
+document.getElementById("lang").value=L0; setLang(L0);
+document.getElementById("lang").onchange=e=>setLang(e.target.value);
 
 /* ── тема ───────────────────────────────────────────────── */
 document.getElementById("theme").onclick=()=>{
