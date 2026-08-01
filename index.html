@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ТАТУ ТУТ — рабочая станция тату-мастера</title>
+<style>
+:root{
+  --bg:#f4f1e8; --ink:#0b1208; --ink-2:#3b4636; --line:#ddd7c7;
+  --card:#fffdf7; --accent:#c4f000; --accent-ink:#0b1208;
+  --shadow:0 1px 2px rgba(11,18,8,.06),0 8px 28px rgba(11,18,8,.07);
+  --r:14px; --nav:60px;
+}
+:root[data-theme="dark"]{
+  --bg:#0d1310; --ink:#eef2e6; --ink-2:#9aa694; --line:#242e26;
+  --card:#141b16; --accent:#c4f000; --accent-ink:#0b1208;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);
+  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* ── шапка ─────────────────────────────────────────────── */
+header{position:sticky;top:0;z-index:60;height:var(--nav);
+  background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
+.hd{height:var(--nav);display:flex;align-items:center;gap:26px}
+.logo{font-weight:800;letter-spacing:-.4px;font-size:17px;white-space:nowrap}
+.logo b{color:var(--ink)}
+.logo i{font-style:normal;opacity:.45}
+nav.main{display:flex;gap:2px;flex:1}
+nav.main a{padding:8px 12px;border-radius:9px;color:var(--ink-2);font-weight:600;
+  font-size:14px;position:relative;cursor:pointer}
+nav.main a:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
+nav.main a[data-mega]::after{content:"▾";margin-left:5px;font-size:10px;opacity:.5}
+.hd .right{display:flex;align-items:center;gap:10px}
+.pill{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;
+  font-weight:600;color:var(--ink-2);background:var(--card);cursor:pointer}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;
+  padding:9px 16px;font-weight:750;font-size:14px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+
+/* ── мегаменю ──────────────────────────────────────────── */
+.mega{position:absolute;left:0;right:0;top:var(--nav);background:var(--card);
+  border-bottom:1px solid var(--line);box-shadow:var(--shadow);
+  display:none;padding:22px 0 26px}
+.mega.on{display:block}
+.mega .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
+.mega h5{font-size:11px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-2);margin-bottom:10px}
+.mega a.item{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;
+  border-radius:10px}
+.mega a.item:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.mega .ic{width:26px;height:26px;border-radius:7px;flex:none;
+  background:color-mix(in srgb,var(--accent) 26%,var(--card));
+  display:grid;place-items:center;font-size:14px}
+.mega .t{font-weight:650;font-size:14px}
+.mega .d{font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.mega .tag{font-size:10px;font-weight:800;letter-spacing:.06em;padding:2px 6px;
+  border-radius:5px;background:var(--accent);color:var(--accent-ink);margin-left:6px;
+  vertical-align:2px}
+
+/* ── лента анонсов ─────────────────────────────────────── */
+.feed{padding:26px 0 6px}
+.feed-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.feed-hd h2{font-size:19px;letter-spacing:-.3px}
+.feed-hd span{font-size:13px;color:var(--ink-2)}
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(300px,1fr);
+  gap:14px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
+.rail::-webkit-scrollbar{height:6px}
+.rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;scroll-snap-align:start;cursor:pointer;
+  transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+.stage{position:relative;aspect-ratio:4/3;overflow:hidden;
+  background:linear-gradient(150deg,#e9e4d4,#d9d3c0)}
+:root[data-theme="dark"] .stage{background:linear-gradient(150deg,#17201a,#0f1712)}
+.card .meta{padding:12px 14px 14px}
+.card .meta .k{font-size:10.5px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-2)}
+.card .meta h3{font-size:15.5px;margin:5px 0 4px;letter-spacing:-.2px}
+.card .meta p{font-size:13px;color:var(--ink-2);line-height:1.45}
+
+/* ── анимации превью (заглушки под будущее видео) ──────── */
+.orb{position:absolute;inset:0;display:grid;place-items:center}
+.eye{width:74px;height:74px;border-radius:50%;
+  background:radial-gradient(circle at 42% 38%,#fff,#c9d2c2 42%,#2b3a2c 46%,#0d140e 70%);
+  box-shadow:0 0 0 10px rgba(196,240,0,.13);animation:zoomEye 7s ease-in-out infinite}
+@keyframes zoomEye{
+  0%{transform:scale(.28) translateY(16px);opacity:.25}
+  22%{transform:scale(.5) translateY(4px);opacity:1}
+  55%{transform:scale(1.5) translateY(0)}
+  80%{transform:scale(1.05) rotate(8deg)}
+  100%{transform:scale(.28) translateY(16px);opacity:.25}}
+.grid3d{position:absolute;inset:-30%;
+  background-image:linear-gradient(rgba(64,88,60,.34) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(64,88,60,.34) 1px,transparent 1px);
+  background-size:26px 26px;transform:perspective(340px) rotateX(58deg);
+  animation:drift 12s linear infinite}
+@keyframes drift{to{background-position:0 260px}}
+.blob{position:absolute;width:120px;height:120px;border-radius:38% 62% 55% 45%;
+  background:conic-gradient(from 0deg,#c4f000,#5fb26a,#2b3a2c,#c4f000);
+  filter:blur(2px);opacity:.85;animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fly{position:absolute;width:11px;height:11px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 16px 5px rgba(196,240,0,.5);
+  animation:fly 6.5s cubic-bezier(.5,0,.5,1) infinite}
+@keyframes fly{
+  0%{left:6%;top:74%;transform:scale(.5)}
+  40%{left:52%;top:26%;transform:scale(1.15)}
+  70%{left:78%;top:60%;transform:scale(.85)}
+  100%{left:6%;top:74%;transform:scale(.5)}}
+.sweep{position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.5) 50%,transparent 62%);
+  animation:sweep 4.5s ease-in-out infinite}
+@keyframes sweep{0%{transform:translateX(-110%)}60%,100%{transform:translateX(110%)}}
+.badge{position:absolute;left:11px;top:11px;font-size:10.5px;font-weight:800;
+  letter-spacing:.07em;padding:4px 8px;border-radius:6px;
+  background:var(--accent);color:var(--accent-ink)}
+.badge.soft{background:color-mix(in srgb,var(--card) 84%,transparent);color:var(--ink)}
+
+/* ── герой с центральной кнопкой ───────────────────────── */
+.hero{padding:34px 0 8px;text-align:center}
+.hero h1{font-size:clamp(30px,4.6vw,50px);letter-spacing:-1.4px;line-height:1.05;
+  font-weight:820}
+.hero p{color:var(--ink-2);margin:12px auto 22px;max-width:560px;font-size:16px}
+.create{display:inline-flex;align-items:center;gap:11px;background:var(--accent);
+  color:var(--accent-ink);border:0;border-radius:15px;padding:15px 30px;
+  font:750 17px/1 inherit;cursor:pointer;
+  box-shadow:0 8px 26px rgba(196,240,0,.34)}
+.create:hover{transform:translateY(-1px)}
+.create .plus{width:24px;height:24px;border-radius:8px;background:rgba(11,18,8,.14);
+  display:grid;place-items:center;font-size:17px}
+
+/* ── выбор функции (шторка) ────────────────────────────── */
+.sheet{position:fixed;inset:0;z-index:90;display:none;
+  background:rgba(11,18,8,.42);backdrop-filter:blur(3px)}
+.sheet.on{display:grid;place-items:center;padding:20px}
+.sheet .box{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  width:min(760px,100%);padding:22px;box-shadow:var(--shadow)}
+.sheet h4{font-size:17px;margin-bottom:4px}
+.sheet .sub{font-size:13px;color:var(--ink-2);margin-bottom:16px}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
+.pick{border:1px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;
+  background:var(--bg);text-align:left}
+.pick:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--bg))}
+.pick .e{font-size:19px}
+.pick .n{font-weight:680;font-size:14px;margin-top:6px}
+.pick .h{font-size:12px;color:var(--ink-2);margin-top:2px;line-height:1.35}
+
+/* ── экран генератора ──────────────────────────────────── */
+.gen{display:none;padding:20px 0 60px}
+.gen.on{display:block}
+.genbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.genbar h2{font-size:20px;letter-spacing:-.4px}
+.genwrap{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;position:sticky;top:calc(var(--nav) + 14px)}
+.panel label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-2);margin:14px 0 6px}
+.panel label:first-of-type{margin-top:0}
+.panel textarea,.panel select{width:100%;background:var(--bg);color:var(--ink);
+  border:1px solid var(--line);border-radius:10px;padding:11px;font:14px/1.5 inherit;
+  resize:vertical}
+.panel textarea{min-height:104px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;
+  padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink-2)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.panel .go{width:100%;margin-top:16px;padding:13px}
+.panel .note{font-size:11.5px;color:var(--ink-2);margin-top:9px;text-align:center}
+
+.canvas{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px}
+.drop{aspect-ratio:3/4;max-height:min(74vh,760px);border:2px dashed var(--line);
+  border-radius:12px;display:grid;place-items:center;text-align:center;
+  position:relative;overflow:hidden;background:var(--bg);cursor:pointer}
+.drop:hover{border-color:var(--accent)}
+.drop .in{padding:24px}
+.drop .in .big{font-size:34px}
+.drop .in .t{font-weight:680;margin-top:8px}
+.drop .in .s{font-size:13px;color:var(--ink-2);margin-top:4px}
+.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tools .pill{cursor:pointer}
+.rotor{position:absolute;inset:0;display:none;place-items:center}
+.rotor.on{display:grid}
+.rotor .obj{width:56%;aspect-ratio:1;border-radius:50%;
+  background:conic-gradient(from 0deg,#2b3a2c,#c4f000,#5fb26a,#2b3a2c);
+  filter:blur(1px);animation:spin 14s linear infinite}
+.slider{position:absolute;left:0;right:0;bottom:12px;display:flex;
+  justify-content:center;gap:8px}
+.slider input{width:62%}
+
+/* ── сетка функций ─────────────────────────────────────── */
+.tools-sec{padding:34px 0 10px}
+.tools-sec h2{font-size:22px;letter-spacing:-.5px;margin-bottom:5px}
+.tools-sec .sub{color:var(--ink-2);font-size:14px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
+
+footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
+  color:var(--ink-2);font-size:13px;display:flex;gap:16px;flex-wrap:wrap;
+  justify-content:space-between}
+
+/* ── мобильная нижняя панель ───────────────────────────── */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;
+  background:color-mix(in srgb,var(--bg) 94%,transparent);
+  backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  padding:7px 6px calc(7px + env(safe-area-inset-bottom))}
+.tabbar div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-2);
+  font-weight:650;cursor:pointer}
+.tabbar div i{display:block;font-size:19px;font-style:normal;margin-bottom:1px}
+.tabbar div.on{color:var(--ink)}
+@media(max-width:980px){
+  .genwrap{grid-template-columns:1fr}
+  .panel{position:static}
+  nav.main{display:none}
+  .tabbar{display:flex}
+  body{padding-bottom:64px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap hd">
+    <div class="logo"><b>ТАТУ ТУТ</b> <i>studio</i></div>
+    <nav class="main">
+      <a data-mega="sketch">Эскиз</a>
+      <a data-mega="body">На теле</a>
+      <a data-mega="video">Видео</a>
+      <a data-mega="apps">Мини-аппы</a>
+      <a onclick="scrollTo(0,0)">Новости</a>
+    </nav>
+    <div class="right">
+      <span class="pill" id="theme">◐ Тема</span>
+      <span class="pill">⚡ 240 кредитов</span>
+      <button class="btn ghost">Войти</button>
+    </div>
+  </div>
+
+  <div class="mega" id="mega">
+    <div class="wrap cols" id="megaCols"></div>
+  </div>
+</header>
+
+<!-- ═══ ГЛАВНАЯ ═══ -->
+<main id="home">
+  <section class="wrap hero">
+    <h1>Мастерская тату-мастера.<br>Целиком в браузере.</h1>
+    <p>Эскиз, трафарет, примерка на теле, 3D-разворот и оживление — всё в одном
+       окне. Машинка остаётся в твоей руке, последнее слово по каждой линии тоже.</p>
+    <button class="create" onclick="openSheet()">
+      <span class="plus">+</span> Создать
+    </button>
+  </section>
+
+  <section class="wrap feed">
+    <div class="feed-hd">
+      <h2>Что нового</h2><span>обновляется каждую неделю</span>
+    </div>
+    <div class="rail" id="feed"></div>
+  </section>
+
+  <section class="wrap tools-sec">
+    <h2>Инструменты</h2>
+    <div class="sub">Всё, что съедает вечера — эскизы, трафареты, примерки, ролики.</div>
+    <div class="grid" id="tools"></div>
+  </section>
+
+  <footer class="wrap">
+    <div>© ТАТУ ТУТ — рабочая станция тату-мастера</div>
+    <div>Каркас · функции подключаются</div>
+  </footer>
+</main>
+
+<!-- ═══ ГЕНЕРАТОР ═══ -->
+<section class="gen wrap" id="gen">
+  <div class="genbar">
+    <button class="btn ghost" onclick="closeGen()">← Назад</button>
+    <h2 id="genTitle">Создать эскиз</h2>
+  </div>
+  <div class="genwrap">
+    <div class="panel">
+      <label>Что нарисовать</label>
+      <textarea id="prompt" placeholder="Тигр в неотрадишнл, чёрно-серый, на предплечье, вытянутый вертикально…"></textarea>
+
+      <label>Стиль</label>
+      <div class="chips" id="styles"></div>
+
+      <label>Куда на тело</label>
+      <div class="chips" id="places"></div>
+
+      <label>Размер</label>
+      <select id="size">
+        <option>Маленькая · 8 см</option>
+        <option selected>Средняя · 15 см</option>
+        <option>Большая · 28 см</option>
+        <option>Во всю руку · 50 см</option>
+      </select>
+
+      <button class="btn go">Сгенерировать · 1 кредит</button>
+      <div class="note">Первый вариант ~40 секунд</div>
+    </div>
+
+    <div class="canvas">
+      <div class="drop" id="drop">
+        <div class="in" id="dropIn">
+          <div class="big">🖼</div>
+          <div class="t">Перетащи эскиз сюда</div>
+          <div class="s">или нажми, чтобы выбрать файл · PNG, JPG до 20 МБ</div>
+        </div>
+        <div class="rotor" id="rotor"><div class="obj"></div></div>
+        <div class="slider" id="sld" style="display:none">
+          <input type="range" min="0" max="360" value="0" id="ang">
+        </div>
+      </div>
+      <div class="tools">
+        <span class="pill" onclick="toggleRotor()">🧊 3D-разворот</span>
+        <span class="pill">💡 Переставить свет</span>
+        <span class="pill">🖨 Большой трансфер</span>
+        <span class="pill">🔗 Ссылка клиенту</span>
+        <span class="pill">⬇️ Скачать</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- выбор функции -->
+<div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
+  <div class="box">
+    <h4>Что делаем?</h4>
+    <div class="sub">Выбери — и сразу попадёшь в рабочее окно</div>
+    <div class="picks" id="picks"></div>
+  </div>
+</div>
+
+<div class="tabbar">
+  <div class="on"><i>⌂</i>Главная</div>
+  <div onclick="openSheet()"><i>✳︎</i>Создать</div>
+  <div><i>▦</i>Работы</div>
+  <div><i>◍</i>Мини-аппы</div>
+  <div><i>◐</i>Профиль</div>
+</div>
+
+<script>
+/* ── данные каркаса ─────────────────────────────────────── */
+const FN = [
+  {id:"sketch", e:"✏️", n:"Создать эскиз",     h:"Идея словами → готовый эскиз", anim:"blob"},
+  {id:"render3d",e:"🧊", n:"3D-разворот",       h:"Крути эскиз и забирай нужный ракурс", anim:"eye", tag:"НОВОЕ"},
+  {id:"light",  e:"💡", n:"Переставить свет",  h:"Тот же эскиз, другое освещение", anim:"sweep", tag:"НОВОЕ"},
+  {id:"stencil",e:"📄", n:"Трафарет",           h:"Чистые линии под перевод", anim:"sweep"},
+  {id:"bigprint",e:"🖨", n:"Большой трансфер",  h:"Спина и рукав — ровно по листам А4", anim:"grid"},
+  {id:"tryon",  e:"🫱", n:"Примерка на теле",   h:"Как ляжет на руку, спину, рёбра", anim:"blob"},
+  {id:"animate",e:"🎬", n:"Оживить тату",       h:"Существо на коже начинает двигаться", anim:"eye"},
+  {id:"extract",e:"🔍", n:"Эскиз из фото",      h:"Вытащить дизайн с чужого снимка", anim:"sweep"},
+  {id:"retouch",e:"✨", n:"Ретушь снимка",      h:"Свет, краснота, чистота — под портфолио", anim:"sweep"},
+  {id:"link",   e:"🔗", n:"Ссылка клиенту",     h:"Он примеряет сам, ты получаешь заявку", anim:"fly"},
+];
+
+const FEED = [
+  {k:"Интервью", t:"Драга Павлик — линия, которая растёт как растение",
+   d:"Дания, органический fine-line. О глубинной экологии, фигурном катании и о том, почему тату остаётся делом человека с человеком.",
+   anim:"sweep", badge:"НА ЭТОЙ НЕДЕЛЕ"},
+  {k:"Функция месяца", t:"3D-разворот эскиза",
+   d:"Загружаешь плоский эскиз — получаешь объём. Крутишь мышкой, ловишь ракурс, забираешь эскиз под этим углом в том же стиле.",
+   anim:"eye", badge:"НОВОЕ"},
+  {k:"Акция", t:"Оживление тату — $4.99",
+   d:"Существо на коже двигается. Клиент видит свою будущую работу живой ещё до сеанса.",
+   anim:"blob", badge:"ДО КОНЦА МЕСЯЦА"},
+  {k:"Скоро", t:"Второе интервью серии",
+   d:"Мастер, стиль и разбор приёмов. Готовим к выпуску.",
+   anim:"grid", badge:"ГОТОВИМ", soft:1},
+];
+
+const MEGA = {
+  sketch:[["Работа с эскизом",[["✏️","Создать эскиз","Идея словами"],["🖌","Править эскиз","Дорисовать, убрать, заменить"],["🔍","Эскиз из фото","Вытащить чужой дизайн"]]],
+          ["Объём и свет",[["🧊","3D-разворот","Крути и лови ракурс","НОВОЕ"],["💡","Переставить свет","Тот же эскиз, другая подача","НОВОЕ"]]],
+          ["Печать",[["📄","Трафарет","Чистые линии"],["🖨","Большой трансфер","Спина и рукав по А4"]]]],
+  body:[["Примерка",[["🫱","Фото-примерка","Как ляжет на тело"],["🎥","Видео-примерка","Рука двигается"]]],
+        ["Клиенту",[["🔗","Ссылка клиенту","Мерит сам"],["📐","Подобрать размер","См и посадка"]]],
+        ["Снимок",[["✨","Ретушь снимка","Под портфолио"]]]],
+  video:[["Ролики",[["🎬","Оживить тату","Существо двигается"],["🎞","Проходка камерой","Кино-подача работы"]]],
+         ["Пресеты",[["⚡","Готовые сцены","Свет, ракурс, движение"]]],
+         ["Публикация",[["📲","Формат под соцсети","9:16 и 1:1"]]]],
+  apps:[["Мини-аппы",[["🧩","Раскрой А4","Любой размер на листы"],["🎨","Палитра работы","Цвета из эскиза"]]],
+        ["Для студии",[["👥","Заявки","Кто примерял и написал"],["📊","Отчёт","Что работает"]]],
+        ["Скоро",[["✳︎","Свой стиль","Обучить модель на своих работах","СКОРО"]]]],
+};
+
+/* ── отрисовка ──────────────────────────────────────────── */
+const anim = a => ({
+  eye:'<div class="grid3d"></div><div class="orb"><div class="eye"></div></div>',
+  blob:'<div class="orb"><div class="blob"></div></div>',
+  grid:'<div class="grid3d"></div>',
+  sweep:'<div class="sweep"></div>',
+  fly:'<div class="grid3d"></div><div class="fly"></div>',
+}[a] || '');
+
+document.getElementById("feed").innerHTML = FEED.map(f=>`
+  <article class="card">
+    <div class="stage">${anim(f.anim)}
+      <span class="badge${f.soft?" soft":""}">${f.badge}</span></div>
+    <div class="meta"><div class="k">${f.k}</div><h3>${f.t}</h3><p>${f.d}</p></div>
+  </article>`).join("");
+
+document.getElementById("tools").innerHTML = FN.map(f=>`
+  <article class="card" onclick="openGen('${f.id}')">
+    <div class="stage">${anim(f.anim)}
+      ${f.tag?`<span class="badge">${f.tag}</span>`:""}</div>
+    <div class="meta"><h3>${f.e} ${f.n}</h3><p>${f.h}</p></div>
+  </article>`).join("");
+
+document.getElementById("picks").innerHTML = FN.map(f=>`
+  <button class="pick" onclick="openGen('${f.id}')">
+    <div class="e">${f.e}</div><div class="n">${f.n}</div><div class="h">${f.h}</div>
+  </button>`).join("");
+
+const chip=(a,id)=>document.getElementById(id).innerHTML=
+  a.map((s,i)=>`<span class="chip${i==0?" on":""}" onclick="pick(this)">${s}</span>`).join("");
+chip(["неотрадишнл","реализм","графика","олдскул","орнамент","fine-line"],"styles");
+chip(["предплечье","плечо","спина","рёбра","нога","кисть"],"places");
+window.pick=el=>{[...el.parentNode.children].forEach(c=>c.classList.remove("on"));
+  el.classList.add("on")};
+
+/* ── мегаменю ───────────────────────────────────────────── */
+let mt=null;
+document.querySelectorAll("nav.main a[data-mega]").forEach(a=>{
+  a.onmouseenter=()=>{clearTimeout(mt);
+    const cols=MEGA[a.dataset.mega]||[];
+    document.getElementById("megaCols").innerHTML=cols.map(([h,items])=>`
+      <div><h5>${h}</h5>${items.map(([e,t,d,tg])=>`
+        <a class="item"><span class="ic">${e}</span><span>
+          <span class="t">${t}${tg?`<span class="tag">${tg}</span>`:""}</span>
+          <span class="d">${d}</span></span></a>`).join("")}</div>`).join("");
+    document.getElementById("mega").classList.add("on")};
+});
+document.getElementById("mega").onmouseleave=
+  ()=>mt=setTimeout(()=>document.getElementById("mega").classList.remove("on"),120);
+document.getElementById("mega").onmouseenter=()=>clearTimeout(mt);
+document.querySelector("header").onmouseleave=
+  ()=>mt=setTimeout(()=>document.getElementById("mega").classList.remove("on"),160);
+
+/* ── навигация ──────────────────────────────────────────── */
+window.openSheet=()=>document.getElementById("sheet").classList.add("on");
+window.closeSheet=()=>document.getElementById("sheet").classList.remove("on");
+window.openGen=id=>{
+  const f=FN.find(x=>x.id===id)||FN[0];
+  document.getElementById("genTitle").textContent=f.n;
+  closeSheet();
+  document.getElementById("home").style.display="none";
+  document.getElementById("gen").classList.add("on");
+  scrollTo(0,0);
+};
+window.closeGen=()=>{
+  document.getElementById("gen").classList.remove("on");
+  document.getElementById("home").style.display="";
+};
+window.toggleRotor=()=>{
+  const r=document.getElementById("rotor"),s=document.getElementById("sld"),
+        d=document.getElementById("dropIn");
+  const on=r.classList.toggle("on");
+  s.style.display=on?"flex":"none"; d.style.display=on?"none":"";
+};
+document.getElementById("ang").oninput=e=>{
+  document.querySelector(".rotor .obj").style.transform=`rotate(${e.target.value}deg)`;
+};
+
+/* ── тема ───────────────────────────────────────────────── */
+document.getElementById("theme").onclick=()=>{
+  const r=document.documentElement;
+  r.dataset.theme = r.dataset.theme==="dark" ? "light" : "dark";
+};
+</script>
+</body>
+</html>
