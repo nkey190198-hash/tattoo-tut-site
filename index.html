@@ -4,402 +4,794 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <title>TATTOO TUT — the tattoo artist’s workstation</title>
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ═══════════════════════════════════════════════════════════
+   ТОКЕНЫ
+   Правило палитры: страница — кремовая и спокойная. Лайм живёт
+   ВНУТРИ тёмных медиа-панелей, где ему есть от чего оттолкнуться.
+   На кремовом лайм даёт цвет без перепада яркости — отсюда кислота.
+   Поэтому в светлой теме главная кнопка чернильная, в тёмной — лаймовая.
+   ═══════════════════════════════════════════════════════════ */
 :root{
-  --bg:#f4f1e8; --ink:#0b1208; --ink-2:#3b4636; --line:#ddd7c7;
-  --card:#fffdf7; --accent:#c4f000; --accent-ink:#0b1208;
-  --shadow:0 1px 2px rgba(11,18,8,.06),0 8px 28px rgba(11,18,8,.07);
-  --r:14px; --nav:60px;
+  --paper:#f4f1e8; --raise:#faf8f2; --card:#fffdf8; --sunk:#ece9dd;
+  --line:#e3ded0; --line-2:#d2cbb6;
+  --ink:#0b1208; --ink-2:#525c4b; --ink-3:#8b9482;
+  --lime:#c4f000; --lime-deep:#7f9c00;
+  --cta:#0b1208; --cta-ink:#f6f4ec;
+  --media-a:#161e18; --media-b:#080c09;
+  --sh-1:0 1px 2px rgba(11,18,8,.05);
+  --sh-2:0 2px 8px rgba(11,18,8,.06),0 14px 34px rgba(11,18,8,.08);
+  --r:12px; --r-lg:16px;
+  --gut:24px; --nav:56px; --sec:38px;
 }
 :root[data-theme="dark"]{
-  --bg:#0d1310; --ink:#eef2e6; --ink-2:#9aa694; --line:#242e26;
-  --card:#141b16; --accent:#c4f000; --accent-ink:#0b1208;
-  --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.5);
+  --paper:#0a0d0b; --raise:#111614; --card:#151b17; --sunk:#070a08;
+  --line:#232b25; --line-2:#333d35;
+  --ink:#e9eee4; --ink-2:#9aa694; --ink-3:#6c7967;
+  --lime:#c4f000; --lime-deep:#c4f000;
+  --cta:#c4f000; --cta-ink:#0b1208;
+  --media-a:#212a20; --media-b:#141a16;
+  --sh-1:0 1px 2px rgba(0,0,0,.4);
+  --sh-2:0 2px 8px rgba(0,0,0,.5),0 16px 40px rgba(0,0,0,.55);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--ink);
-  font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
-  -webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);
+  font:14.5px/1.55 'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
-@media(max-width:640px){.wrap{padding:0 18px}}
+button,select,textarea,input{font-family:inherit;color:inherit}
+h1,h2,h3,.osw{font-family:'Oswald',Impact,sans-serif;font-weight:600;
+  letter-spacing:.01em;line-height:1.08}
+.wrap{max-width:1320px;margin:0 auto;padding:0 var(--gut)}
+.hidden{display:none!important}
+::selection{background:var(--lime);color:#0b1208}
 
-/* ── шапка ─────────────────────────────────────────────── */
-header{position:sticky;top:0;z-index:60;height:auto;
-  background:color-mix(in srgb,var(--bg) 88%,transparent);
-  backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
-.hd{height:var(--nav);display:flex;align-items:center;gap:26px}
-.logo{display:flex;align-items:center;gap:9px;white-space:nowrap;cursor:pointer}
-.logo .mark{width:34px;height:34px;border-radius:11px;background:var(--ink);
-  color:var(--accent);display:grid;place-items:center;font-size:19px;flex:none}
-:root[data-theme="dark"] .logo .mark{background:var(--card);
-  border:1px solid var(--line)}
-.logo b{font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--ink)}
-nav.main{display:flex;gap:2px;flex:1}
-nav.main a{padding:8px 12px;border-radius:9px;color:var(--ink-2);font-weight:600;
-  font-size:14px;position:relative;cursor:pointer}
-nav.main a:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
-nav.main a[data-mega]::after{content:"▾";margin-left:5px;font-size:10px;opacity:.5}
-.hd .right{display:flex;align-items:center;gap:10px}
-.pill{border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px;
-  font-weight:600;color:var(--ink-2);background:var(--card);cursor:pointer}
-.ic-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
-  background:var(--card);display:grid;place-items:center;font-size:15px;
-  color:var(--ink-2);cursor:pointer}
-.ic-btn:hover{color:var(--ink);border-color:var(--accent)}
-.btn.thin{padding:7px 14px;border-radius:9px;font-weight:700}
-/* кольцо = остаток токенов: полный круг — полный баланс, тает по мере трат */
-.acct{--left:.62;position:relative;width:36px;height:36px;border-radius:50%;
+/* ── типовые элементы ──────────────────────────────────── */
+.btn{background:var(--cta);color:var(--cta-ink);border:0;border-radius:10px;
+  padding:10px 16px;font:600 13.5px/1 'Inter',sans-serif;cursor:pointer;
+  display:inline-flex;align-items:center;gap:8px;transition:.15s}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--sh-2)}
+.btn.ghost{background:transparent;border:1px solid var(--line-2);color:var(--ink)}
+.btn.ghost:hover{border-color:var(--ink);box-shadow:none}
+.btn.big{padding:13px 22px;font-size:15px;border-radius:12px}
+.btn.wide{width:100%;justify-content:center}
+.pill{border:1px solid var(--line);border-radius:8px;padding:6px 11px;
+  font-size:12.5px;font-weight:500;color:var(--ink-2);background:var(--card);
+  cursor:pointer;white-space:nowrap;transition:.14s}
+.pill:hover{border-color:var(--ink-3);color:var(--ink)}
+.tag{font:700 9.5px/1 'Inter',sans-serif;letter-spacing:.09em;padding:4px 6px;
+  border-radius:4px;background:var(--lime);color:#0b1208;text-transform:uppercase}
+.tag.q{background:rgba(255,255,255,.14);color:#fff;backdrop-filter:blur(6px)}
+.muted{color:var(--ink-2)}
+.eyebrow{font:600 10.5px/1 'Inter',sans-serif;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-3)}
+
+/* ── ШАПКА ─────────────────────────────────────────────── */
+.promo{background:var(--ink);color:#f2f0e6;font-size:12px;padding:6px 0}
+:root[data-theme="dark"] .promo{background:#12180f}
+.promo .wrap{display:flex;align-items:center;gap:10px;justify-content:center;
+  flex-wrap:wrap;text-align:center}
+.promo b{color:var(--lime);font-weight:700}
+.promo-cta{border:1px solid rgba(255,255,255,.28);border-radius:6px;
+  padding:2px 9px;font-weight:600;cursor:pointer;transition:.14s}
+.promo-cta:hover{background:var(--lime);color:#0b1208;border-color:var(--lime)}
+
+header{position:sticky;top:0;z-index:60;
+  background:color-mix(in srgb,var(--paper) 90%,transparent);
+  backdrop-filter:saturate(1.5) blur(16px);border-bottom:1px solid var(--line)}
+.hd{height:var(--nav);display:flex;align-items:center;gap:22px}
+.logo{display:flex;align-items:center;gap:9px;cursor:pointer;flex:none}
+.logo img{width:30px;height:30px;border-radius:9px;display:block}
+.logo b{font-family:'Oswald',sans-serif;font-size:19px;font-weight:700;
+  letter-spacing:.02em;color:var(--ink);white-space:nowrap}
+nav.main{display:flex;gap:1px;flex:1;min-width:0}
+nav.main a{padding:7px 11px;border-radius:8px;color:var(--ink-2);
+  font-weight:500;font-size:13.5px;cursor:pointer;white-space:nowrap;
+  position:relative;transition:.14s}
+nav.main a:hover,nav.main a.on{color:var(--ink)}
+nav.main a.on::after{content:"";position:absolute;left:11px;right:11px;bottom:1px;
+  height:2px;border-radius:2px;background:var(--lime)}
+nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
+  margin-left:6px;vertical-align:2px;border:3px solid transparent;
+  border-top-color:currentColor;opacity:.45}
+
+/* правый угол: настройки — отдельно, личное — одной группой */
+.hd .right{display:flex;align-items:center;gap:14px;flex:none}
+.util{display:flex;align-items:center;gap:6px}
+.ic-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
+  background:var(--card);display:grid;place-items:center;font-size:13px;
+  color:var(--ink-2);cursor:pointer;transition:.14s}
+.ic-btn:hover{color:var(--ink);border-color:var(--ink-3)}
+.langwrap{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);
+  background:var(--card);border-radius:8px;padding:0 8px;height:30px}
+.lang{font-weight:600;font-size:12.5px;background:transparent;border:0;outline:0;
+  cursor:pointer;-webkit-appearance:none;appearance:none}
+.me{display:flex;align-items:center;gap:8px;border:1px solid var(--line);
+  background:var(--card);border-radius:22px;padding:3px 3px 3px 12px}
+.me .signin{font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
+  color:var(--ink)}
+.me .bal{font-size:12px;font-weight:600;color:var(--ink-2);white-space:nowrap;
+  cursor:pointer;padding-left:2px}
+.me .bal b{color:var(--ink);font-weight:700}
+/* кольцо = остаток токенов */
+.acct{--left:.62;position:relative;width:32px;height:32px;border-radius:50%;
   display:grid;place-items:center;cursor:pointer;flex:none;
-  background:conic-gradient(var(--accent) calc(var(--left)*360deg),
-    color-mix(in srgb,var(--ink) 14%,transparent) 0)}
-.acct .ava{width:28px;height:28px;border-radius:50%;background:var(--ink);
-  color:var(--bg);display:grid;place-items:center;font-size:12px;font-weight:800}
-.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;
-  padding:9px 16px;font-weight:750;font-size:14px;cursor:pointer;font-family:inherit}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+  background:conic-gradient(var(--lime) calc(var(--left)*360deg),
+    color-mix(in srgb,var(--ink) 13%,transparent) 0)}
+.acct .ava{width:25px;height:25px;border-radius:50%;background:var(--ink);
+  color:var(--paper);display:grid;place-items:center;font:700 11px 'Inter',sans-serif}
 
-.promo{background:var(--ink);color:var(--bg);font-size:12px;font-weight:600;
-  padding:5px 0;line-height:1.3}
-.promo .wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
-  justify-content:center;text-align:center}
-.promo b{color:var(--accent);font-weight:800}
-.promo-cta{border:1px solid rgba(255,255,255,.3);border-radius:7px;
-  padding:2px 9px;font-weight:700;cursor:pointer}
-.promo-cta:hover{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-header{top:0}
-.subnav{display:flex;gap:6px;overflow-x:auto;padding:9px 20px 10px;
-  border-top:1px solid var(--line);scrollbar-width:none}
-.subnav::-webkit-scrollbar{display:none}
-.sn{white-space:nowrap;border:1px solid var(--line);background:var(--card);
-  border-radius:9px;padding:6px 12px;font-size:13px;font-weight:650;
-  color:var(--ink-2);cursor:pointer}
-.sn:hover{border-color:var(--accent);color:var(--ink)}
-.sn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+/* ── строка разделов = живой фильтр витрины ────────────── */
+.filters{display:flex;gap:6px;overflow-x:auto;padding:8px 0 9px;
+  scrollbar-width:none;align-items:center}
+.filters::-webkit-scrollbar{display:none}
+.fl{white-space:nowrap;border:1px solid var(--line);background:var(--card);
+  border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:500;
+  color:var(--ink-2);cursor:pointer;transition:.14s;display:flex;
+  align-items:center;gap:7px}
+.fl:hover{border-color:var(--ink-3);color:var(--ink)}
+.fl.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.fl .dot{width:5px;height:5px;border-radius:50%;background:var(--lime);
+  opacity:0;transition:.14s}
+.fl.on .dot{opacity:1}
+.fl .ct{font-size:11px;opacity:.55;font-weight:600}
+.filters .spacer{flex:1;min-width:8px}
 
 /* ── мегаменю ──────────────────────────────────────────── */
 .mega{position:absolute;left:0;right:0;top:100%;background:var(--card);
-  border-bottom:1px solid var(--line);box-shadow:var(--shadow);
-  display:none;padding:22px 0 26px}
+  border-bottom:1px solid var(--line);box-shadow:var(--sh-2);display:none;
+  padding:20px 0 24px}
 .mega.on{display:block}
-.mega .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:26px}
-.mega h5{font-size:11px;letter-spacing:.09em;text-transform:uppercase;
-  color:var(--ink-2);margin-bottom:10px}
-.mega a.item{display:flex;gap:10px;align-items:flex-start;padding:8px 9px;
-  border-radius:10px}
+.mega .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.mega h5{margin-bottom:8px}
+.mega a.item{display:flex;gap:9px;align-items:flex-start;padding:7px 8px;
+  border-radius:9px;cursor:pointer}
 .mega a.item:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
-.mega .ic{width:26px;height:26px;border-radius:7px;flex:none;
-  background:color-mix(in srgb,var(--accent) 26%,var(--card));
-  display:grid;place-items:center;font-size:14px}
-.mega .t{font-weight:650;font-size:14px}
-.mega .d{font-size:12.5px;color:var(--ink-2);line-height:1.4}
-.mega .tag{font-size:10px;font-weight:800;letter-spacing:.06em;padding:2px 6px;
-  border-radius:5px;background:var(--accent);color:var(--accent-ink);margin-left:6px;
-  vertical-align:2px}
+.mega .ic{width:24px;height:24px;border-radius:6px;flex:none;display:grid;
+  place-items:center;font-size:12px;
+  background:linear-gradient(150deg,var(--media-a),var(--media-b))}
+.mega .t{font-weight:600;font-size:13.5px}
+.mega .d{font-size:12px;color:var(--ink-2);line-height:1.35}
 
-/* ── лента анонсов ─────────────────────────────────────── */
-.feed{padding:26px 0 6px}
-.feed-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
-.feed-hd h2{font-size:19px;letter-spacing:-.3px}
-.feed-hd span{font-size:13px;color:var(--ink-2)}
-.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(272px,1fr);
-  gap:14px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
-.rail::-webkit-scrollbar{height:6px}
-.rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  overflow:hidden;scroll-snap-align:start;cursor:pointer;
-  transition:transform .18s ease,box-shadow .18s ease}
-.card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
-.stage{position:relative;aspect-ratio:4/3;overflow:hidden;
-  background:linear-gradient(150deg,#e9e4d4,#d9d3c0)}
-:root[data-theme="dark"] .stage{background:linear-gradient(150deg,#17201a,#0f1712)}
-.card .meta{padding:12px 14px 14px}
-.card .meta .k{font-size:10.5px;font-weight:800;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink-2)}
-.card .meta h3{font-size:15.5px;margin:5px 0 4px;letter-spacing:-.2px}
-.card .meta p{font-size:13px;color:var(--ink-2);line-height:1.45}
+/* ── КОМПАКТНЫЙ ГЕРОЙ + КОМАНДНАЯ СТРОКА ───────────────
+   Главный выигрыш плотности: полотно на пол-экрана заменено
+   строкой, в которой сразу можно писать. ─────────────── */
+.top{padding:26px 0 4px;display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap}
+.top h1{font-size:clamp(26px,3.2vw,40px);text-transform:uppercase;
+  letter-spacing:.005em;max-width:14ch}
+.top p{color:var(--ink-2);font-size:14px;max-width:44ch;padding-bottom:4px}
+.cmd{margin:16px 0 4px;background:var(--card);border:1px solid var(--line);
+  border-radius:14px;padding:9px 9px 9px 15px;display:flex;align-items:center;
+  gap:10px;box-shadow:var(--sh-1);transition:.16s}
+.cmd:focus-within{border-color:var(--ink-3);box-shadow:var(--sh-2)}
+.cmd input{flex:1;min-width:0;border:0;outline:0;background:transparent;
+  font-size:14.5px;padding:8px 0}
+.cmd input::placeholder{color:var(--ink-3)}
+.cmd .sel{display:flex;align-items:center;gap:7px;border:1px solid var(--line);
+  border-radius:9px;padding:7px 10px;font-size:12.5px;font-weight:600;
+  cursor:pointer;background:var(--raise);white-space:nowrap;color:var(--ink-2)}
+.cmd .sel:hover{border-color:var(--ink-3);color:var(--ink)}
+.cmd .sel .cur{color:var(--ink)}
 
-/* ── анимации превью (заглушки под будущее видео) ──────── */
-.orb{position:absolute;inset:0;display:grid;place-items:center}
-.eye{width:74px;height:74px;border-radius:50%;
-  background:radial-gradient(circle at 42% 38%,#fff,#c9d2c2 42%,#2b3a2c 46%,#0d140e 70%);
-  box-shadow:0 0 0 10px rgba(196,240,0,.13);animation:zoomEye 7s ease-in-out infinite}
-@keyframes zoomEye{
-  0%{transform:scale(.28) translateY(16px);opacity:.25}
-  22%{transform:scale(.5) translateY(4px);opacity:1}
-  55%{transform:scale(1.5) translateY(0)}
-  80%{transform:scale(1.05) rotate(8deg)}
-  100%{transform:scale(.28) translateY(16px);opacity:.25}}
-.grid3d{position:absolute;inset:-30%;
-  background-image:linear-gradient(rgba(64,88,60,.34) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(64,88,60,.34) 1px,transparent 1px);
-  background-size:26px 26px;transform:perspective(340px) rotateX(58deg);
-  animation:drift 12s linear infinite}
-@keyframes drift{to{background-position:0 260px}}
-.blob{position:absolute;width:120px;height:120px;border-radius:38% 62% 55% 45%;
-  background:conic-gradient(from 0deg,#c4f000,#5fb26a,#2b3a2c,#c4f000);
-  filter:blur(2px);opacity:.85;animation:spin 9s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.fly{position:absolute;width:11px;height:11px;border-radius:50%;
-  background:var(--accent);box-shadow:0 0 16px 5px rgba(196,240,0,.5);
-  animation:fly 6.5s cubic-bezier(.5,0,.5,1) infinite}
-@keyframes fly{
-  0%{left:6%;top:74%;transform:scale(.5)}
-  40%{left:52%;top:26%;transform:scale(1.15)}
-  70%{left:78%;top:60%;transform:scale(.85)}
-  100%{left:6%;top:74%;transform:scale(.5)}}
-.sweep{position:absolute;inset:0;
-  background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.5) 50%,transparent 62%);
-  animation:sweep 4.5s ease-in-out infinite}
-@keyframes sweep{0%{transform:translateX(-110%)}60%,100%{transform:translateX(110%)}}
-.badge{position:absolute;left:11px;top:11px;font-size:10.5px;font-weight:800;
-  letter-spacing:.07em;padding:4px 8px;border-radius:6px;
-  background:var(--accent);color:var(--accent-ink)}
-.badge.soft{background:color-mix(in srgb,var(--card) 84%,transparent);color:var(--ink)}
+/* ── СЕКЦИИ ────────────────────────────────────────────── */
+.sec{padding:var(--sec) 0 0}
+.sec-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;
+  flex-wrap:wrap}
+.sec-hd h2{font-size:19px;text-transform:uppercase}
+.sec-hd .s{font-size:13px;color:var(--ink-2);flex:1;min-width:120px}
+.sec-hd .more{font-size:12.5px;font-weight:600;color:var(--ink-2);cursor:pointer}
+.sec-hd .more:hover{color:var(--ink)}
 
-/* ── герой с центральной кнопкой ───────────────────────── */
-.hero{padding:34px 0 8px;text-align:center}
-.hero h1{font-size:clamp(30px,4.6vw,50px);letter-spacing:-1.4px;line-height:1.05;
-  font-weight:820}
-.hero p{color:var(--ink-2);margin:12px auto 22px;max-width:560px;font-size:16px}
-.create{display:inline-flex;align-items:center;gap:11px;background:var(--accent);
-  color:var(--accent-ink);border:0;border-radius:15px;padding:15px 30px;
-  font:750 17px/1 inherit;cursor:pointer;
-  box-shadow:0 8px 26px rgba(196,240,0,.34)}
-.create:hover{transform:translateY(-1px)}
-.create .plus{width:24px;height:24px;border-radius:8px;background:rgba(11,18,8,.14);
-  display:grid;place-items:center;font-size:17px}
+/* ── ПЛИТКИ ИНСТРУМЕНТОВ (плотная витрина) ─────────────
+   7 в ряд на десктопе против прежних 4, медиа — тёмное,
+   подпись лежит поверх, движение включается на наведении. */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));
+  gap:10px}
+.tile{position:relative;border-radius:var(--r);overflow:hidden;cursor:pointer;
+  aspect-ratio:1;background:linear-gradient(155deg,var(--media-a),var(--media-b));
+  border:1px solid var(--line);transition:.18s;isolation:isolate}
+.tile:hover{transform:translateY(-2px);box-shadow:var(--sh-2);
+  border-color:var(--line-2)}
+.tile .lbl{position:absolute;left:0;right:0;bottom:0;padding:22px 10px 9px;
+  background:linear-gradient(transparent,rgba(6,10,7,.86) 46%);color:#f2f0e6;
+  z-index:3}
+.tile .lbl .n{font-weight:600;font-size:12.5px;line-height:1.25;
+  display:flex;align-items:center;gap:5px}
+.tile .lbl .h{font-size:11px;opacity:.68;line-height:1.3;margin-top:2px;
+  max-height:0;overflow:hidden;transition:max-height .2s ease}
+.tile:hover .lbl .h{max-height:32px}
+.tile .corner{position:absolute;left:8px;top:8px;z-index:3}
+.tile .cost{position:absolute;right:8px;top:8px;z-index:3;font-size:10px;
+  font-weight:600;color:#f2f0e6;background:rgba(6,10,7,.5);border-radius:5px;
+  padding:3px 6px;backdrop-filter:blur(6px)}
 
-/* ── выбор функции (шторка) ────────────────────────────── */
-.sheet{position:fixed;inset:0;z-index:90;display:none;
-  background:rgba(11,18,8,.42);backdrop-filter:blur(3px)}
+/* ── ЛЕНТА АНОНСОВ ─────────────────────────────────────── */
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(246px,1fr);
+  gap:12px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}
+.rail::-webkit-scrollbar{height:5px}
+.rail::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:99px}
+.ncard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:.18s}
+.ncard:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.ncard .media{position:relative;aspect-ratio:16/10;overflow:hidden;
+  background:linear-gradient(155deg,var(--media-a),var(--media-b))}
+.ncard .meta{padding:10px 12px 12px}
+.ncard .meta h3{font-size:14px;margin:4px 0 3px;font-family:'Inter',sans-serif;
+  font-weight:600;letter-spacing:0;line-height:1.3}
+.ncard .meta p{font-size:12px;color:var(--ink-2);line-height:1.42}
+
+/* ── АПСЫ КУБИКАМИ ─────────────────────────────────────── */
+.cubes{display:grid;grid-template-columns:repeat(auto-fit,minmax(292px,1fr));gap:12px}
+.cube{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  overflow:hidden;display:flex;flex-direction:column;transition:.18s}
+.cube:hover{box-shadow:var(--sh-2);border-color:var(--line-2)}
+.cube .demo{position:relative;aspect-ratio:16/9;overflow:hidden;
+  background:linear-gradient(155deg,var(--media-a),var(--media-b))}
+.cube .body{padding:13px 14px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
+.cube h3{font-size:15px;font-family:'Inter',sans-serif;font-weight:700;
+  letter-spacing:0;display:flex;align-items:center;gap:7px}
+.cube .d{font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.cube ol{list-style:none;display:flex;flex-direction:column;gap:5px;margin-top:1px}
+.cube ol li{font-size:12px;color:var(--ink-2);display:flex;gap:8px;
+  align-items:flex-start}
+.cube ol li i{font-style:normal;width:16px;height:16px;border-radius:5px;flex:none;
+  background:var(--sunk);color:var(--ink);display:grid;place-items:center;
+  font-size:9.5px;font-weight:700;margin-top:1px}
+.cube .foot{margin-top:auto;display:flex;align-items:center;gap:10px;
+  justify-content:space-between;padding-top:3px}
+
+/* ── ВИДЕО-ПРЕСЕТЫ С ХУКАМИ ────────────────────────────── */
+.presets{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:10px}
+.preset{position:relative;aspect-ratio:9/14;border-radius:var(--r);overflow:hidden;
+  cursor:pointer;border:1px solid var(--line);transition:.18s;
+  background:linear-gradient(160deg,var(--media-a),var(--media-b))}
+.preset:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.preset .cap{position:absolute;left:0;right:0;bottom:0;z-index:3;
+  padding:26px 10px 10px;color:#f2f0e6;
+  background:linear-gradient(transparent,rgba(6,10,7,.9) 48%)}
+.preset .cap .n{font-weight:600;font-size:12.5px}
+.preset .cap .h{font-size:10.5px;opacity:.72;line-height:1.32;margin-top:3px}
+.preset .sec-badge{position:absolute;right:8px;top:8px;z-index:3;font-size:9.5px;
+  font-weight:700;color:#0b1208;background:var(--lime);border-radius:4px;
+  padding:3px 5px}
+
+/* ── ЖУРНАЛ ────────────────────────────────────────────── */
+.jrn{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
+.jcard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;cursor:pointer;transition:.18s;display:flex;flex-direction:column}
+.jcard:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.jcard .media{position:relative;aspect-ratio:16/9;
+  background:linear-gradient(155deg,var(--media-a),var(--media-b))}
+.jcard .b{padding:10px 12px 12px;display:flex;flex-direction:column;gap:5px;flex:1}
+.jcard h4{font-size:13.5px;font-weight:600;line-height:1.32}
+.jcard p{font-size:11.5px;color:var(--ink-2);line-height:1.4}
+.jcard .hook{margin-top:auto;padding-top:7px;font-size:11.5px;font-weight:600;
+  color:var(--ink);display:flex;align-items:center;gap:6px}
+.jcard .hook span{color:var(--lime-deep)}
+
+/* ── ПРАЙС ─────────────────────────────────────────────── */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(252px,1fr));gap:12px}
+.plan{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:20px 18px;display:flex;flex-direction:column;gap:13px;position:relative}
+.plan.best{border-color:var(--ink);box-shadow:var(--sh-2)}
+.plan .rib{position:absolute;top:-9px;left:18px}
+.plan .pn{font-family:'Oswald',sans-serif;font-size:16px;text-transform:uppercase;
+  letter-spacing:.04em}
+.plan .pp{display:flex;align-items:baseline;gap:5px}
+.plan .pp b{font-family:'Oswald',sans-serif;font-size:38px;font-weight:600;
+  line-height:1}
+.plan .pp span{font-size:12.5px;color:var(--ink-2)}
+.plan .pd{font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:7px;flex:1}
+.plan li{font-size:12.5px;display:flex;gap:8px;align-items:flex-start;
+  line-height:1.4}
+.plan li::before{content:"✓";width:14px;flex:none;color:var(--lime-deep);
+  font-weight:700;font-size:12px}
+.extras{margin-top:12px;background:var(--raise);border:1px solid var(--line);
+  border-radius:var(--r);padding:14px 16px;display:flex;gap:22px;flex-wrap:wrap;
+  align-items:center}
+.extras .x{display:flex;flex-direction:column;gap:2px}
+.extras .x b{font-size:14px}
+.extras .x span{font-size:11.5px;color:var(--ink-2)}
+
+/* ── ПРОФИЛЬ ───────────────────────────────────────────── */
+.phead{display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  padding:24px 0 4px}
+.phead .big-ava{--left:.62;width:74px;height:74px;border-radius:50%;
+  display:grid;place-items:center;flex:none;
+  background:conic-gradient(var(--lime) calc(var(--left)*360deg),
+    color-mix(in srgb,var(--ink) 12%,transparent) 0)}
+.phead .big-ava i{width:62px;height:62px;border-radius:50%;background:var(--ink);
+  color:var(--paper);display:grid;place-items:center;font:700 24px 'Inter',sans-serif;
+  font-style:normal}
+.phead .who h2{font-size:24px;text-transform:uppercase}
+.phead .who p{font-size:13px;color:var(--ink-2);margin-top:3px}
+.phead .bcard{margin-left:auto;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);padding:13px 16px;display:flex;gap:16px;align-items:center}
+.phead .bcard .n{font-family:'Oswald',sans-serif;font-size:24px;line-height:1}
+.phead .bcard .l{font-size:11px;color:var(--ink-2)}
+
+/* витрина «сколько вечеров сэкономил» — наша фишка */
+.hero-stat{margin-top:14px;border-radius:var(--r-lg);overflow:hidden;
+  background:linear-gradient(140deg,var(--media-a),var(--media-b));
+  color:#f2f0e6;padding:26px;display:flex;gap:28px;align-items:center;
+  flex-wrap:wrap;position:relative}
+.hero-stat .num{font-family:'Oswald',sans-serif;font-size:76px;line-height:.9;
+  color:var(--lime)}
+.hero-stat .txt{flex:1;min-width:230px}
+.hero-stat .txt h3{font-size:19px;text-transform:uppercase;font-family:'Oswald',sans-serif}
+.hero-stat .txt p{font-size:13px;opacity:.72;margin-top:6px;line-height:1.5}
+.hero-stat .math{font-size:11.5px;opacity:.55;margin-top:8px;font-variant-numeric:tabular-nums}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));
+  gap:10px;margin-top:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:14px 15px}
+.stat .n{font-family:'Oswald',sans-serif;font-size:27px;line-height:1}
+.stat .l{font-size:11.5px;color:var(--ink-2);margin-top:4px}
+.stat .t{font-size:10.5px;color:var(--lime-deep);font-weight:600;margin-top:5px}
+.heat{display:flex;gap:3px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
+.heat .w{display:flex;flex-direction:column;gap:3px}
+.heat .d{width:11px;height:11px;border-radius:3px;background:var(--sunk)}
+
+/* ── РАБОЧЕЕ ОКНО ──────────────────────────────────────
+   Компоновка — зеркало Хиггсфилда (решение владельца 31.07):
+   СПРАВА ввод и пресеты, СЛЕВА результат / 3D-вьювер. ─── */
+.wkbar{display:flex;align-items:center;gap:14px;padding:16px 0 14px;
+  flex-wrap:wrap}
+.wkbar .ttl h2{font-size:20px;text-transform:uppercase}
+.wkbar .ttl p{font-size:12.5px;color:var(--ink-2);margin-top:2px}
+.wkbar .rgt{margin-left:auto;display:flex;align-items:center;gap:9px}
+.wkwrap{display:grid;grid-template-columns:1fr 322px;gap:16px;
+  align-items:start;padding-bottom:60px}
+.stagebox{background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-lg);padding:14px}
+.stage{border-radius:var(--r);overflow:hidden;position:relative;width:100%;
+  margin:0 auto;background:linear-gradient(155deg,var(--media-a),var(--media-b));
+  display:grid;place-items:center}
+.stage .empty{text-align:center;color:#c9d2c2;padding:30px;z-index:4}
+.stage .empty .big{font-size:26px;opacity:.5}
+.stage .empty .t{font-weight:600;margin-top:9px;font-size:13.5px}
+.stage .empty .s{font-size:12px;opacity:.6;margin-top:4px;max-width:32ch;
+  margin-inline:auto;line-height:1.45}
+.aftertools{display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;align-items:center}
+.aftertools .lb{font-size:11.5px;color:var(--ink-3);margin-right:2px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:15px;position:sticky;top:calc(var(--nav) + 12px)}
+.panel .fld+.fld{margin-top:13px}
+.panel label{display:block;font:600 10.5px/1 'Inter',sans-serif;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+.panel textarea,.panel select,.panel input[type=text]{width:100%;
+  background:var(--raise);border:1px solid var(--line);border-radius:9px;
+  padding:10px;font-size:13.5px;resize:vertical;outline:0}
+.panel textarea:focus,.panel select:focus,.panel input:focus{border-color:var(--ink-3)}
+.panel textarea{min-height:88px;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{border:1px solid var(--line);background:var(--raise);border-radius:7px;
+  padding:6px 10px;font-size:12px;font-weight:500;cursor:pointer;color:var(--ink-2);
+  transition:.14s}
+.chip:hover{border-color:var(--ink-3);color:var(--ink)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.drop{border:1.5px dashed var(--line-2);border-radius:10px;padding:16px;
+  text-align:center;cursor:pointer;background:var(--raise);transition:.14s}
+.drop:hover{border-color:var(--ink-3)}
+.drop .e{font-size:19px;opacity:.6}
+.drop .t{font-size:12.5px;font-weight:600;margin-top:5px}
+.drop .s{font-size:11px;color:var(--ink-3);margin-top:2px}
+.presetmini{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.pm{border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;
+  background:var(--raise);transition:.14s}
+.pm:hover{border-color:var(--ink-3)}
+.pm.on{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.pm .n{font-size:11.5px;font-weight:600}
+.pm .h{font-size:10px;opacity:.62;line-height:1.3;margin-top:2px}
+.gorow{margin-top:15px;display:flex;flex-direction:column;gap:7px}
+.cost-note{font-size:11px;color:var(--ink-3);text-align:center}
+.cost-note a{color:var(--ink);font-weight:600;cursor:pointer;
+  border-bottom:1px solid var(--lime)}
+.slider{position:absolute;left:16px;right:16px;bottom:14px;z-index:5;
+  display:flex;align-items:center;gap:10px;background:rgba(6,10,7,.55);
+  border-radius:10px;padding:8px 12px;backdrop-filter:blur(8px);color:#f2f0e6}
+.slider input{flex:1}
+.slider span{font-size:11px;width:44px;text-align:right;
+  font-variant-numeric:tabular-nums}
+.sheets{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:22px;
+  width:100%;max-width:340px;z-index:4}
+.sheets div{aspect-ratio:1/1.414;border:1px dashed rgba(196,240,0,.4);
+  border-radius:3px;background:rgba(196,240,0,.05)}
+.linkbox{z-index:4;text-align:center;padding:26px;color:#f2f0e6}
+.linkbox .url{font-size:12.5px;background:rgba(255,255,255,.09);border-radius:8px;
+  padding:9px 13px;display:inline-block;margin-bottom:14px;
+  border:1px solid rgba(255,255,255,.14)}
+.qr{width:112px;height:112px;margin:0 auto;display:grid;
+  grid-template-columns:repeat(11,1fr);gap:2px;background:#f2f0e6;padding:8px;
+  border-radius:9px}
+.qr i{background:#0b1208;border-radius:1px}
+.qr i.off{background:transparent}
+
+/* ── ШТОРКА ВЫБОРА ─────────────────────────────────────── */
+.sheet{position:fixed;inset:0;z-index:95;display:none;
+  background:rgba(8,12,9,.5);backdrop-filter:blur(4px)}
 .sheet.on{display:grid;place-items:center;padding:20px}
 .sheet .box{background:var(--card);border:1px solid var(--line);border-radius:18px;
-  width:min(760px,100%);padding:22px;box-shadow:var(--shadow)}
-.sheet h4{font-size:17px;margin-bottom:4px}
-.sheet .sub{font-size:13px;color:var(--ink-2);margin-bottom:16px}
-.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:10px}
-.pick{border:1px solid var(--line);border-radius:12px;padding:13px;cursor:pointer;
-  background:var(--bg);text-align:left}
-.pick:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--bg))}
-.pick .e{font-size:19px}
-.pick .n{font-weight:680;font-size:14px;margin-top:6px}
-.pick .h{font-size:12px;color:var(--ink-2);margin-top:2px;line-height:1.35}
+  width:min(820px,100%);padding:20px;box-shadow:var(--sh-2);
+  max-height:86vh;overflow:auto}
+.sheet h4{font-size:17px;text-transform:uppercase;font-family:'Oswald',sans-serif}
+.sheet .sub{font-size:12.5px;color:var(--ink-2);margin:3px 0 14px}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:8px}
+.pick{border:1px solid var(--line);border-radius:10px;padding:11px;cursor:pointer;
+  background:var(--raise);text-align:left;transition:.14s}
+.pick:hover{border-color:var(--ink);background:var(--card)}
+.pick .e{font-size:16px}
+.pick .n{font-weight:600;font-size:13px;margin-top:5px}
+.pick .h{font-size:11.5px;color:var(--ink-2);margin-top:2px;line-height:1.35}
 
-/* ── экран генератора ──────────────────────────────────── */
-.gen{display:none;padding:20px 0 60px}
-.gen.on{display:block}
-.genbar{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.genbar h2{font-size:20px;letter-spacing:-.4px}
-.genwrap{display:grid;grid-template-columns:330px 1fr;gap:18px;align-items:start}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  padding:16px;position:sticky;top:calc(var(--nav) + 14px)}
-.panel label{display:block;font-size:11px;font-weight:800;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--ink-2);margin:14px 0 6px}
-.panel label:first-of-type{margin-top:0}
-.panel textarea,.panel select{width:100%;background:var(--bg);color:var(--ink);
-  border:1px solid var(--line);border-radius:10px;padding:11px;font:14px/1.5 inherit;
-  resize:vertical}
-.panel textarea{min-height:104px}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--line);background:var(--bg);border-radius:8px;
-  padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink-2)}
-.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.panel .go{width:100%;margin-top:16px;padding:13px}
-.panel .note{font-size:11.5px;color:var(--ink-2);margin-top:9px;text-align:center}
-
-.canvas{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  padding:16px}
-.drop{aspect-ratio:3/4;max-height:min(74vh,760px);border:2px dashed var(--line);
-  border-radius:12px;display:grid;place-items:center;text-align:center;
-  position:relative;overflow:hidden;background:var(--bg);cursor:pointer}
-.drop:hover{border-color:var(--accent)}
-.drop .in{padding:24px}
-.drop .in .big{font-size:34px}
-.drop .in .t{font-weight:680;margin-top:8px}
-.drop .in .s{font-size:13px;color:var(--ink-2);margin-top:4px}
-.tools{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.tools .pill{cursor:pointer}
-.rotor{position:absolute;inset:0;display:none;place-items:center}
-.rotor.on{display:grid}
-.rotor .obj{width:56%;aspect-ratio:1;border-radius:50%;
-  background:conic-gradient(from 0deg,#2b3a2c,#c4f000,#5fb26a,#2b3a2c);
-  filter:blur(1px);animation:spin 14s linear infinite}
-.slider{position:absolute;left:0;right:0;bottom:12px;display:flex;
-  justify-content:center;gap:8px}
-.slider input{width:62%}
-
-/* ── сетка функций ─────────────────────────────────────── */
-.tools-sec{padding:34px 0 10px}
-.tools-sec h2{font-size:22px;letter-spacing:-.5px;margin-bottom:5px}
-.tools-sec .sub{color:var(--ink-2);font-size:14px;margin-bottom:16px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:14px}
-
-footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
-  color:var(--ink-2);font-size:13px;display:flex;gap:16px;flex-wrap:wrap;
+footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
+  color:var(--ink-2);font-size:12.5px;display:flex;gap:16px;flex-wrap:wrap;
   justify-content:space-between}
 
-/* ── мобильная нижняя панель ───────────────────────────── */
+/* ── ДВИЖЕНИЕ ВНУТРИ ТЁМНЫХ ПАНЕЛЕЙ ──────────────────── */
+.fx{position:absolute;inset:0;overflow:hidden;z-index:1}
+.fx .grid3d{position:absolute;inset:-40%;
+  background-image:linear-gradient(rgba(196,240,0,.16) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(196,240,0,.16) 1px,transparent 1px);
+  background-size:24px 24px;transform:perspective(300px) rotateX(60deg)}
+.fx .blob{position:absolute;left:50%;top:50%;width:52%;aspect-ratio:1;
+  margin:-26% 0 0 -26%;border-radius:40% 60% 55% 45%;
+  background:conic-gradient(from 0deg,var(--lime),#4e8f3f,#101a12,var(--lime));
+  filter:blur(1px);opacity:.9}
+.fx .eye{position:absolute;left:50%;top:50%;width:42%;aspect-ratio:1;
+  margin:-21% 0 0 -21%;border-radius:50%;
+  background:radial-gradient(circle at 40% 36%,#fff,#b9c7ac 40%,#20301f 45%,#070c08 72%);
+  box-shadow:0 0 0 7px rgba(196,240,0,.13)}
+.fx .sweep{position:absolute;inset:0;
+  background:linear-gradient(104deg,transparent 40%,rgba(196,240,0,.3) 50%,transparent 60%);
+  transform:translateX(-110%)}
+.fx .fly{position:absolute;left:10%;top:70%;width:9px;height:9px;border-radius:50%;
+  background:var(--lime);box-shadow:0 0 14px 4px rgba(196,240,0,.5)}
+.fx .snake{position:absolute;left:50%;top:56%;width:34%;aspect-ratio:1;
+  margin-left:-17%;border-radius:50% 50% 46% 46%;
+  background:radial-gradient(circle at 46% 34%,#e7f5c4,var(--lime) 40%,#3c5b12 74%);
+  transform:scale(.34)}
+.fx .ring{position:absolute;left:50%;top:50%;width:46%;aspect-ratio:1;
+  margin:-23% 0 0 -23%;border-radius:50%;border:2px solid rgba(196,240,0,.5)}
+.fx .bar{position:absolute;left:14%;right:14%;top:50%;height:2px;
+  background:linear-gradient(90deg,transparent,var(--lime),transparent)}
+/* каждому инструменту — свой силуэт, иначе витрина читается как обои */
+.fx .lines{position:absolute;inset:17% 27%;border-radius:4px;
+  background:repeating-linear-gradient(93deg,rgba(196,240,0,.5) 0 2px,transparent 2px 10px)}
+.fx .stack{position:absolute;left:50%;top:50%;width:42%;aspect-ratio:1/1.32;
+  margin:-28% 0 0 -21%}
+.fx .stack i{position:absolute;inset:0;border:1px solid rgba(196,240,0,.42);
+  border-radius:3px;background:rgba(196,240,0,.05)}
+.fx .stack i:nth-child(2){transform:translate(10%,8%)}
+.fx .stack i:nth-child(3){transform:translate(20%,16%)}
+.fx .arm{position:absolute;left:50%;top:12%;bottom:12%;width:30%;margin-left:-15%;
+  border-radius:999px;background:linear-gradient(100deg,#33452f,#141d16 62%)}
+.fx .arm i{position:absolute;left:16%;right:16%;top:33%;height:28%;border-radius:44%;
+  background:radial-gradient(circle,rgba(196,240,0,.8),rgba(196,240,0,.04) 70%)}
+.fx .nodes{position:absolute;inset:25%;border:2px dashed rgba(196,240,0,.5);
+  border-radius:60% 40% 55% 45%}
+.fx .nodes i{position:absolute;width:7px;height:7px;border-radius:2px;
+  background:var(--lime)}
+.fx .nodes i:nth-child(1){left:-4px;top:34%}
+.fx .nodes i:nth-child(2){right:-4px;top:16%}
+.fx .nodes i:nth-child(3){left:44%;bottom:-4px}
+.fx .frame{position:absolute;inset:23%}
+.fx .frame i{position:absolute;width:28%;height:28%;
+  border:2px solid rgba(196,240,0,.6)}
+.fx .frame i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0}
+.fx .frame i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0}
+.fx .frame i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0}
+.fx .frame i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0}
+.fx .glow{position:absolute;left:50%;top:50%;width:62%;aspect-ratio:1;
+  margin:-31% 0 0 -31%;border-radius:50%;
+  background:radial-gradient(circle,rgba(196,240,0,.2),transparent 70%)}
+.fx .halo{position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(126,136,116,.22) 0 50%,transparent 50%);
+  border-right:0}
+.fx .halo::after{content:"";position:absolute;left:50%;top:14%;bottom:14%;width:1px;
+  background:rgba(196,240,0,.45)}
+.fx .halo i{position:absolute;left:50%;top:50%;width:44%;aspect-ratio:1;
+  margin:-22% 0 0 -22%;border-radius:50%;
+  background:radial-gradient(circle,rgba(196,240,0,.45),transparent 68%)}
+.fx .swatch{position:absolute;inset:28% 22%;display:flex;gap:5px}
+.fx .swatch i{flex:1;border-radius:3px;transform-origin:bottom}
+.fx .swatch i:nth-child(1){background:#c4f000}
+.fx .swatch i:nth-child(2){background:#7fae3a}
+.fx .swatch i:nth-child(3){background:#3f6b45}
+.fx .swatch i:nth-child(4){background:#20351f}
+.fx .pages{position:absolute;inset:23%;display:grid;
+  grid-template-columns:repeat(3,1fr);gap:3px}
+.fx .pages i{border:1px dashed rgba(196,240,0,.42);border-radius:2px;
+  background:rgba(196,240,0,.04)}
+/* покой по умолчанию, движение — на наведении и в крупных панелях */
+.tile:hover .grid3d,.always .grid3d{animation:drift 11s linear infinite}
+.tile:hover .blob,.always .blob{animation:spin 9s linear infinite}
+.tile:hover .eye,.always .eye{animation:pulse 6s ease-in-out infinite}
+.tile:hover .sweep,.always .sweep{animation:sweep 3.4s ease-in-out infinite}
+.tile:hover .fly,.always .fly{animation:fly 6s cubic-bezier(.5,0,.5,1) infinite}
+.preset:hover .snake,.always .snake{animation:strike 2.6s cubic-bezier(.6,0,.3,1) infinite}
+.preset:hover .ring,.always .ring{animation:spinout 3.2s ease-in-out infinite}
+.preset:hover .bar,.tile:hover .bar,.always .bar{animation:scanbar 2.8s ease-in-out infinite}
+.tile:hover .lines,.always .lines{animation:linescroll 4s linear infinite}
+.tile:hover .stack,.always .stack{animation:fan 4.4s ease-in-out infinite}
+.tile:hover .arm i,.always .arm i{animation:pulse 4s ease-in-out infinite}
+.tile:hover .nodes,.always .nodes{animation:morph 6s ease-in-out infinite}
+.tile:hover .frame,.always .frame{animation:framein 3.6s ease-in-out infinite}
+.tile:hover .halo i,.always .halo i{animation:pulse 3.4s ease-in-out infinite}
+.tile:hover .swatch i,.always .swatch i{animation:bars 2.8s ease-in-out infinite}
+.tile:hover .swatch i:nth-child(2),.always .swatch i:nth-child(2){animation-delay:.12s}
+.tile:hover .swatch i:nth-child(3),.always .swatch i:nth-child(3){animation-delay:.24s}
+.tile:hover .swatch i:nth-child(4),.always .swatch i:nth-child(4){animation-delay:.36s}
+.tile:hover .pages,.always .pages{animation:fan 5.2s ease-in-out infinite}
+@keyframes linescroll{to{background-position:60px 0}}
+@keyframes fan{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+@keyframes morph{0%,100%{border-radius:60% 40% 55% 45%}
+  50%{border-radius:42% 58% 38% 62%}}
+@keyframes framein{0%,100%{transform:scale(1)}50%{transform:scale(.84)}}
+@keyframes bars{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.68)}}
+@keyframes drift{to{background-position:0 240px}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(.86)}50%{transform:scale(1.06)}}
+@keyframes sweep{0%{transform:translateX(-110%)}62%,100%{transform:translateX(110%)}}
+@keyframes fly{0%{left:10%;top:70%;transform:scale(.5)}
+  42%{left:52%;top:24%;transform:scale(1.15)}
+  72%{left:78%;top:58%;transform:scale(.85)}
+  100%{left:10%;top:70%;transform:scale(.5)}}
+@keyframes strike{0%,100%{transform:scale(.3) translateY(6%)}
+  46%{transform:scale(1.35) translateY(-6%)}70%{transform:scale(1.05)}}
+@keyframes spinout{0%{transform:rotate(0) scale(1);opacity:.9}
+  70%{transform:rotate(400deg) scale(.25);opacity:.15}
+  100%{transform:rotate(720deg) scale(1);opacity:.9}}
+@keyframes scanbar{0%,100%{transform:translateY(-46px);opacity:.2}
+  50%{transform:translateY(46px);opacity:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── НИЖНЯЯ ПАНЕЛЬ ─────────────────────────────────────── */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;
-  background:color-mix(in srgb,var(--bg) 94%,transparent);
+  background:color-mix(in srgb,var(--paper) 94%,transparent);
   backdrop-filter:blur(14px);border-top:1px solid var(--line);
-  padding:7px 6px calc(7px + env(safe-area-inset-bottom))}
-.tabbar div{flex:1;text-align:center;font-size:10.5px;color:var(--ink-2);
-  font-weight:650;cursor:pointer}
-.tabbar div i{display:block;font-size:19px;font-style:normal;margin-bottom:1px}
+  padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+.tabbar div{flex:1;text-align:center;font-size:10px;color:var(--ink-2);
+  font-weight:600;cursor:pointer}
+.tabbar div i{display:block;font-size:17px;font-style:normal;margin-bottom:1px}
 .tabbar div.on{color:var(--ink)}
-.tabbar div.hot{position:relative}
-.tabbar .hotbtn{position:absolute;left:50%;top:-26px;transform:translateX(-50%);
-  width:56px;height:56px;border-radius:50%;background:var(--accent);
-  color:var(--accent-ink);display:grid;place-items:center;font-size:24px;
-  box-shadow:0 6px 22px rgba(196,240,0,.5);border:4px solid var(--bg)}
-.langwrap{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);
-  background:var(--card);border-radius:9px;padding:5px 10px 5px 9px}
-.langwrap .globe{font-size:15px;line-height:1}
-.lang{font-family:inherit;font-weight:750;font-size:13.5px;color:var(--ink);
-  background:transparent;border:0;outline:0;cursor:pointer;
-  -webkit-appearance:none;appearance:none;padding-right:2px}
+.tabbar .hot{position:relative}
+.tabbar .hotbtn{position:absolute;left:50%;top:-24px;transform:translateX(-50%);
+  width:52px;height:52px;border-radius:50%;background:var(--cta);
+  color:var(--cta-ink);display:grid;place-items:center;font-size:22px;
+  border:4px solid var(--paper);box-shadow:var(--sh-2)}
+
 @media(max-width:1100px){
-  .genwrap{grid-template-columns:1fr}
+  .wkwrap{grid-template-columns:1fr}
   .panel{position:static}
   nav.main{display:none}
   .tabbar{display:flex}
-  body{padding-bottom:64px}
+  body{padding-bottom:62px}
+  .me .signin{display:none}
+}
+@media(max-width:760px){
+  :root{--gut:16px;--sec:28px}
+  .top{gap:12px;padding-top:20px}
+  .top p{display:none}
+  .hero-stat{padding:20px;gap:16px}
+  .hero-stat .num{font-size:58px}
+  .phead .bcard{margin-left:0;width:100%}
+  .cmd .sel .cur{display:none}
+  .me .bal{display:none}
+  /* на телефоне промо-полоса не должна занимать три строки */
+  .promo [data-i="promo_t"]{display:none}
 }
 </style>
 </head>
 <body>
 
-<div class="promo" id="promo">
+<div class="promo">
   <span class="wrap"><b data-i="promo_b">Animate a tattoo — $4.99</b>
   <span data-i="promo_t">this month only · the creature on the skin starts moving</span>
-  <a class="promo-cta" data-i="promo_cta">Try it →</a></span>
+  <a class="promo-cta" onclick="openWork('animate')" data-i="promo_cta">Try it →</a></span>
 </div>
 
 <header>
   <div class="wrap hd">
-    <a class="logo"><span class="mark">✳</span><b data-i="brand">TATTOO TUT</b></a>
-    <nav class="main">
-      <a data-mega="sketch">Эскиз</a>
-      <a data-mega="body">На теле</a>
-      <a data-mega="video">Видео</a>
-      <a data-mega="apps">Мини-аппы</a>
-      <a onclick="scrollTo(0,0)">Новости</a>
-    </nav>
+    <a class="logo" onclick="go('home')">
+      <img src="logo.png" alt="TATTOO TUT"><b>TATTOO TUT</b>
+    </a>
+    <nav class="main" id="mainnav"></nav>
     <div class="right">
-      <span class="langwrap"><span class="globe">🌐</span><select class="lang" id="lang">
-        <option value="en">EN</option><option value="ru">RU</option>
-        <option value="de">DE</option><option value="fr">FR</option>
-        <option value="es">ES</option><option value="it">IT</option>
-        <option value="pl">PL</option><option value="cs">CS</option>
-        <option value="nl">NL</option><option value="pt">PT</option>
-      </select></span>
-      <span class="ic-btn" id="theme">◐</span>
-      <a class="ic-btn" title="Instagram">◎</a>
-      <button class="btn ghost thin" data-i="signin">Sign in</button>
-      <span class="acct" id="acct" title="240 / 400"><span class="ava">N</span></span>
+      <div class="util">
+        <span class="langwrap"><select class="lang" id="lang">
+          <option value="en">EN</option><option value="ru">RU</option>
+          <option value="de">DE</option><option value="fr">FR</option>
+          <option value="es">ES</option><option value="it">IT</option>
+          <option value="pl">PL</option><option value="cs">CS</option>
+          <option value="nl">NL</option><option value="pt">PT</option>
+        </select></span>
+        <span class="ic-btn" id="theme" title="Theme">◐</span>
+      </div>
+      <div class="me">
+        <span class="signin" data-i="signin">Sign in</span>
+        <span class="bal" onclick="go('pricing')"><b>248</b> <span data-i="cr">cr</span></span>
+        <span class="acct" onclick="go('profile')" title="240 / 400"><span class="ava">N</span></span>
+      </div>
     </div>
   </div>
-
-  <div class="wrap subnav">
-    <a class="sn on">✦ <span data-i="sn_all">All</span></a>
-    <a class="sn">✏️ <span data-i="sn_sketch">Sketch</span></a>
-    <a class="sn">🫱 <span data-i="sn_body">On body</span></a>
-    <a class="sn">🧊 <span data-i="sn_3d">3D</span></a>
-    <a class="sn">💡 <span data-i="sn_light">Light</span></a>
-    <a class="sn">🎬 <span data-i="sn_video">Video</span></a>
-    <a class="sn">🖨 <span data-i="sn_print">Print</span></a>
-    <a class="sn">🧩 <span data-i="sn_apps">Apps</span></a>
-  </div>
-
-  <div class="mega" id="mega">
-    <div class="wrap cols" id="megaCols"></div>
-  </div>
+  <div class="wrap filters" id="filters"></div>
+  <div class="mega" id="mega"><div class="wrap cols" id="megaCols"></div></div>
 </header>
 
-<!-- ═══ ГЛАВНАЯ ═══ -->
-<main id="home">
-  <section class="wrap hero">
-    <h1 data-i="h1">The tattoo artist’s studio.<br>All of it, in your browser.</h1>
-    <p data-i="sub">Sketch, stencil, on-body try-on, 3D turnaround and animation — one window. The machine stays in your hand, and so does the final say on every line.</p>
-    <button class="create" onclick="openSheet()">
-      <span class="plus">+</span> <span data-i="create">Create</span>
-    </button>
+<!-- ═════════ ГЛАВНАЯ ═════════ -->
+<main id="v-home">
+  <section class="wrap">
+    <div class="top">
+      <h1 data-i="h1">The tattoo artist’s studio</h1>
+      <p data-i="sub">Sketch, stencil, on-body try-on, 3D turnaround and animation — one window. The machine stays in your hand, and so does the final say on every line.</p>
+    </div>
+    <div class="cmd">
+      <input id="cmdInput" data-ph="cmd_ph" placeholder="Describe the piece — a coiled snake, fine-line, forearm, vertical…">
+      <span class="sel" onclick="openSheet()"><span data-i="cmd_in">in</span>
+        <span class="cur" id="cmdTool">Create a sketch</span> ▾</span>
+      <button class="btn" onclick="cmdGo()"><span data-i="create">Create</span></button>
+    </div>
   </section>
 
-  <section class="wrap feed">
-    <div class="feed-hd">
-      <h2 data-i="whats_new">What’s new</h2><span data-i="weekly">updated every week</span>
+  <section class="wrap sec">
+    <div class="sec-hd">
+      <h2 data-i="tools">Tools</h2>
+      <span class="s" data-i="tools_sub">Everything that eats your evenings — drafts, stencils, try-ons, clips.</span>
+      <span class="more" id="fcount"></span>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="sec-hd">
+      <h2 data-i="ups">Add-ons</h2>
+      <span class="s" data-i="ups_sub">Open one and you see straight away what it is and how to work it.</span>
+    </div>
+    <div class="cubes" id="cubes"></div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="sec-hd">
+      <h2 data-i="prs">Video presets</h2>
+      <span class="s" data-i="prs_sub">Five seconds. The hook lands in the first two.</span>
+      <span class="more" onclick="openWork('animate')" data-i="prs_more">Open the studio →</span>
+    </div>
+    <div class="presets" id="presets"></div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="sec-hd">
+      <h2 data-i="whats_new">What’s new</h2>
+      <span class="s" data-i="weekly">updated every week</span>
     </div>
     <div class="rail" id="feed"></div>
   </section>
 
-  <section class="wrap tools-sec">
-    <h2 data-i="tools">Tools</h2>
-    <div class="sub" data-i="tools_sub">Everything that eats your evenings — drafts, stencils, try-ons, clips.</div>
-    <div class="grid" id="tools"></div>
+  <section class="wrap sec">
+    <div class="sec-hd">
+      <h2 data-i="jrn">Journal &amp; learning</h2>
+      <span class="s" data-i="jrn_sub">Read it, then go and use it — every piece ends at a tool.</span>
+      <span class="more" onclick="go('journal')" data-i="jrn_more">All of it →</span>
+    </div>
+    <div class="jrn" id="journalHome"></div>
+  </section>
+
+  <section class="wrap sec">
+    <div class="sec-hd"><h2 data-i="pl">Plans</h2>
+      <span class="s" data-i="pl_sub">Founding price stays yours for good.</span>
+      <span class="more" onclick="go('pricing')" data-i="pl_more">Compare →</span></div>
+    <div class="plans" id="plansHome"></div>
   </section>
 
   <footer class="wrap">
-    <div>© ТАТУ ТУТ — рабочая станция тату-мастера</div>
-    <div>Каркас · функции подключаются</div>
+    <div>© TATTOO TUT — the tattoo artist’s workstation</div>
+    <div><span data-i="ft">Built by a working tattoo artist</span></div>
   </footer>
 </main>
 
-<!-- ═══ ГЕНЕРАТОР ═══ -->
-<section class="gen wrap" id="gen">
-  <div class="genbar">
-    <button class="btn ghost" onclick="closeGen()">← Назад</button>
-    <h2 id="genTitle">Создать эскиз</h2>
-  </div>
-  <div class="genwrap">
-    <div class="panel">
-      <label>Что нарисовать</label>
-      <textarea id="prompt" placeholder="Тигр в неотрадишнл, чёрно-серый, на предплечье, вытянутый вертикально…"></textarea>
-
-      <label>Стиль</label>
-      <div class="chips" id="styles"></div>
-
-      <label>Куда на тело</label>
-      <div class="chips" id="places"></div>
-
-      <label>Размер</label>
-      <select id="size">
-        <option>Маленькая · 8 см</option>
-        <option selected>Средняя · 15 см</option>
-        <option>Большая · 28 см</option>
-        <option>Во всю руку · 50 см</option>
-      </select>
-
-      <button class="btn go">Сгенерировать · 1 кредит</button>
-      <div class="note">Первый вариант ~40 секунд</div>
-    </div>
-
-    <div class="canvas">
-      <div class="drop" id="drop">
-        <div class="in" id="dropIn">
-          <div class="big">🖼</div>
-          <div class="t">Перетащи эскиз сюда</div>
-          <div class="s">или нажми, чтобы выбрать файл · PNG, JPG до 20 МБ</div>
-        </div>
-        <div class="rotor" id="rotor"><div class="obj"></div></div>
-        <div class="slider" id="sld" style="display:none">
-          <input type="range" min="0" max="360" value="0" id="ang">
-        </div>
-      </div>
-      <div class="tools">
-        <span class="pill" onclick="toggleRotor()">🧊 3D-разворот</span>
-        <span class="pill">💡 Переставить свет</span>
-        <span class="pill">🖨 Большой трансфер</span>
-        <span class="pill">🔗 Ссылка клиенту</span>
-        <span class="pill">⬇️ Скачать</span>
+<!-- ═════════ РАБОЧЕЕ ОКНО ═════════ -->
+<main id="v-work" class="hidden">
+  <section class="wrap">
+    <div class="wkbar">
+      <button class="btn ghost" onclick="go('home')">← <span data-i="back">Back</span></button>
+      <div class="ttl"><h2 id="wkTitle"></h2><p id="wkTag"></p></div>
+      <div class="rgt">
+        <span class="pill" onclick="go('pricing')">＋ <span data-i="topup">Top up</span></span>
+        <span class="me"><span class="bal" onclick="go('pricing')"><b>248</b>
+          <span data-i="cr">cr</span></span>
+        <span class="acct" onclick="go('profile')"><span class="ava">N</span></span></span>
       </div>
     </div>
-  </div>
-</section>
+    <div class="wkwrap">
+      <div>
+        <div class="stagebox">
+          <div class="stage" id="wkStage"></div>
+          <div class="aftertools" id="wkAfter"></div>
+        </div>
+      </div>
+      <div class="panel" id="wkPanel"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ═════════ ПРОФИЛЬ ═════════ -->
+<main id="v-profile" class="hidden">
+  <section class="wrap">
+    <div class="phead">
+      <div class="big-ava"><i>N</i></div>
+      <div class="who">
+        <h2>Nikolai Blok</h2>
+        <p><span data-i="pr_since">With us since March</span> · <span class="tag" style="background:var(--sunk);color:var(--ink-2)" data-i="demo">DEMO DATA</span></p>
+      </div>
+      <div class="bcard">
+        <div><div class="n">248</div><div class="l" data-i="pr_left">credits left</div></div>
+        <button class="btn" onclick="go('pricing')" data-i="topup">Top up</button>
+      </div>
+    </div>
+
+    <div class="hero-stat">
+      <div class="num">31</div>
+      <div class="txt">
+        <h3 data-i="pr_ev">evenings you got back</h3>
+        <p data-i="pr_ev_d">That is what the tool has actually bought you. Not features — hours you did not spend redrawing at midnight.</p>
+        <div class="math" data-i="pr_math">142 sketches × ~40 min ≈ 95 h ≈ 31 evenings (3 h each)</div>
+      </div>
+    </div>
+
+    <div class="stats" id="pstats"></div>
+
+    <div class="sec">
+      <div class="sec-hd"><h2 data-i="pr_act">Activity</h2>
+        <span class="s" data-i="pr_act_s">last 16 weeks</span></div>
+      <div class="heat" id="heat"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-hd"><h2 data-i="pr_recent">Recent work</h2>
+        <span class="s" data-i="pr_recent_s">everything you made stays here</span></div>
+      <div class="tiles" id="recent"></div>
+    </div>
+    <footer class="wrap" style="padding-left:0;padding-right:0">
+      <div data-i="demo_note">Demo figures — the panel wires to live data when accounts go on.</div>
+    </footer>
+  </section>
+</main>
+
+<!-- ═════════ ПРАЙС ═════════ -->
+<main id="v-pricing" class="hidden">
+  <section class="wrap">
+    <div class="top">
+      <h1 data-i="pl_h1">Founding plans</h1>
+      <p data-i="pl_sub2">Three tiers, no cheap one-off packs. The price you join at is the price you keep — it does not move when we launch.</p>
+    </div>
+    <div class="plans" id="plansFull" style="margin-top:18px"></div>
+    <div class="extras" id="extras"></div>
+    <div class="sec">
+      <div class="sec-hd"><h2 data-i="pl_q">Straight answers</h2></div>
+      <div class="jrn" id="faq"></div>
+    </div>
+  </section>
+</main>
+
+<!-- ═════════ ЖУРНАЛ ═════════ -->
+<main id="v-journal" class="hidden">
+  <section class="wrap">
+    <div class="top">
+      <h1 data-i="jrn_h1">Journal &amp; learning</h1>
+      <p data-i="jrn_sub2">Interviews, what is moving in the tattoo world, and craft breakdowns. One funnel: read it, open the tool, get better at it.</p>
+    </div>
+    <div id="journalFull"></div>
+  </section>
+</main>
 
 <!-- выбор функции -->
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
@@ -411,206 +803,643 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
 </div>
 
 <div class="tabbar">
-  <div class="on"><i>⌂</i><span data-i="tab_home">Home</span></div>
-  <div><i>◍</i><span data-i="tab_apps">Apps</span></div>
-  <div class="hot" onclick="openSheet()"><span class="hotbtn">✦</span></div>
-  <div><i>▦</i><span data-i="tab_lib">Library</span></div>
-  <div><i>◐</i><span data-i="tab_me">Profile</span></div>
+  <div class="on" onclick="go('home')"><i>⌂</i><span data-i="tab_home">Home</span></div>
+  <div onclick="go('journal')"><i>◍</i><span data-i="tab_jrn">Journal</span></div>
+  <div class="hot" onclick="openSheet()"><span class="hotbtn">＋</span></div>
+  <div onclick="go('pricing')"><i>▦</i><span data-i="tab_pl">Plans</span></div>
+  <div onclick="go('profile')"><i>◐</i><span data-i="tab_me">Profile</span></div>
 </div>
 
 <script>
-/* ── данные каркаса ─────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   ДАННЫЕ. Английский лежит здесь как база; переводы —
+   в DICT по ключу, недостающее падает обратно в английский.
+   ═══════════════════════════════════════════════════════════ */
+const FX = {
+  eye:'<div class="fx"><div class="grid3d"></div><div class="eye"></div></div>',
+  blob:'<div class="fx"><div class="blob"></div></div>',
+  grid:'<div class="fx"><div class="grid3d"></div></div>',
+  sweep:'<div class="fx"><div class="glow"></div><div class="sweep"></div></div>',
+  fly:'<div class="fx"><div class="grid3d"></div><div class="fly"></div></div>',
+  armv:'<div class="fx"><div class="arm"><i></i></div><div class="bar"></div></div>',
+  snake:'<div class="fx"><div class="grid3d"></div><div class="snake"></div></div>',
+  ring:'<div class="fx"><div class="ring"></div></div>',
+  bar:'<div class="fx"><div class="grid3d"></div><div class="bar"></div></div>',
+  lines:'<div class="fx"><div class="lines"></div><div class="sweep"></div></div>',
+  stack:'<div class="fx"><div class="stack"><i></i><i></i><i></i></div></div>',
+  arm:'<div class="fx"><div class="arm"><i></i></div></div>',
+  nodes:'<div class="fx"><div class="nodes"><i></i><i></i><i></i></div></div>',
+  frame:'<div class="fx"><div class="frame"><i></i><i></i><i></i><i></i></div><div class="sweep"></div></div>',
+  halo:'<div class="fx"><div class="halo"><i></i></div></div>',
+  swatch:'<div class="fx"><div class="swatch"><i></i><i></i><i></i><i></i></div></div>',
+  pages:'<div class="fx"><div class="pages"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>',
+};
+const fx = k => FX[k] || '';
+
+/* инструменты: cat — для фильтра, cost — в кредитах */
 const FN = [
-  {id:"sketch", e:"✏️", n:"Create a sketch",  h:"Words in, finished design out", anim:"blob"},
-  {id:"render3d",e:"🧊",n:"3D turnaround",     h:"Spin the design, take the angle you need", anim:"eye", tag:"NEW"},
-  {id:"light",  e:"💡", n:"Relight",           h:"Same design, different light", anim:"sweep", tag:"NEW"},
-  {id:"stencil",e:"📄", n:"Stencil",           h:"Clean lines ready to transfer", anim:"sweep"},
-  {id:"bigprint",e:"🖨",n:"Large transfer",    h:"Backs and sleeves, tiled across A4", anim:"grid"},
-  {id:"tryon",  e:"🫱", n:"Try it on the body", h:"See it on the arm, back, ribs", anim:"blob"},
-  {id:"animate",e:"🎬", n:"Animate the tattoo", h:"The creature on the skin starts moving", anim:"eye"},
-  {id:"extract",e:"🔍", n:"Sketch from a photo",h:"Pull a design out of any shot", anim:"sweep"},
-  {id:"retouch",e:"✨", n:"Retouch the shot",   h:"Light, redness, clarity — portfolio grade", anim:"sweep"},
-  {id:"link",   e:"🔗", n:"Send to the client", h:"They try it on, you get the enquiry", anim:"fly"},
+  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',   n:'Create a sketch',      h:'Words in, finished design out'},
+  {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame',  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
+  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
+  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines',  n:'Stencil',              h:'Clean lines ready to transfer'},
+  {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack',  n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
+  {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',    n:'Try it on the body',   h:'See it on the arm, back, ribs'},
+  {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
+  {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
+  {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
+  {id:'light',   e:'💡', cat:'light',  cost:1,  fxk:'sweep',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
+  {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake',  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
+  {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo',   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
+  {id:'tiling',  e:'🧩', cat:'print',  cost:0,  fxk:'pages',  n:'A4 tiling',            h:'Any size laid out across sheets'},
+  {id:'palette', e:'🎨', cat:'light',  cost:0,  fxk:'swatch', n:'Palette',              h:'Pull the colours out of a design'},
+];
+
+const CATS = [
+  {id:'all',   n:'All'},   {id:'sketch',n:'Sketch'}, {id:'body', n:'On body'},
+  {id:'3d',    n:'3D'},    {id:'light', n:'Light'},  {id:'video',n:'Video'},
+  {id:'print', n:'Print'},
+];
+
+/* пресеты оживления — хук в первые две секунды */
+const PRESETS = [
+  {id:'cobra', fxk:'snake', n:'Cobra strike',  h:'The piece lunges straight at the camera'},
+  {id:'spin',  fxk:'ring',  n:'Spin &amp; fly',    h:'The object twists up and leaves the frame'},
+  {id:'bloom', fxk:'blob',  n:'Ink bloom',     h:'Lines bleed in like ink dropped in water'},
+  {id:'wake',  fxk:'eye',   n:'Skin wake',     h:'The creature breathes, the skin moves with it'},
+  {id:'neon',  fxk:'bar',   n:'Neon pass',     h:'A light sweeps across and the piece flares'},
+  {id:'dive',  fxk:'grid',  n:'Camera dive',   h:'The camera falls into the design'},
+];
+
+/* апсы кубиками — открыл и сразу понял, что это */
+const CUBES = [
+  {id:'render3d', fxk:'eye', e:'🧊', n:'3D turnaround',
+   d:'A flat sketch gets volume. Spin it, catch the angle the body actually needs, take the design back in the same style.',
+   steps:['Drop in the sketch','Spin to the angle','Take it back flat, redrawn for that angle']},
+  {id:'light', fxk:'sweep', e:'💡', n:'Relight',
+   d:'Same design, different light. Soft studio for the portfolio, hard side light for the story, warm for a healed shot.',
+   steps:['Drop in the shot','Pick the light','Keep the ink, move the mood']},
+  {id:'tiling', fxk:'pages', e:'🧩', n:'A4 tiling',
+   d:'A back piece at 1:1 across ordinary A4. Zones measured to real body sizes, overlap for taping, no sheet wasted on a sliver.',
+   steps:['Set the size in cm','Pick the body zone','Print, tape, transfer']},
 ];
 
 const FEED = [
-  {k:"Interview", t:"Draga Pavlik — a line that grows like a plant",
-   d:"Denmark, organic fine-line. On deep ecology, figure skating, and why tattooing stays a human-to-human thing.",
-   anim:"sweep", badge:"THIS WEEK"},
-  {k:"Feature of the month", t:"3D turnaround",
-   d:"Drop in a flat sketch, get volume. Spin it, catch the angle, take the design back in the same style.",
-   anim:"eye", badge:"NEW"},
-  {k:"Deal", t:"Animate a tattoo — $4.99",
-   d:"The creature on the skin moves. Your client sees the piece alive before the session.",
-   anim:"blob", badge:"THIS MONTH"},
-  {k:"Coming", t:"Second interview of the series",
-   d:"An artist, a style, and a breakdown of the craft. In production.",
-   anim:"grid", badge:"SOON", soft:1},
+  {k:'Interview', badge:'THIS WEEK', fxk:'sweep',
+   t:'Draga Pavlik — a line that grows like a plant',
+   d:'Denmark, organic fine-line. On deep ecology, figure skating, and why tattooing stays a human-to-human thing.',
+   href:'https://nkey190198-hash.github.io/tattoo-tut-waitlist/interviews/draga-pavlik.html'},
+  {k:'Feature of the month', badge:'NEW', fxk:'eye', t:'3D turnaround', go:'render3d',
+   d:'Drop in a flat sketch, get volume. Spin it, catch the angle, take the design back in the same style.'},
+  {k:'Deal', badge:'THIS MONTH', fxk:'snake', t:'Animate a tattoo — $4.99', go:'animate',
+   d:'The creature on the skin moves. Your client sees the piece alive before the session.'},
+  {k:'Coming', badge:'SOON', fxk:'grid', t:'Second interview of the series',
+   d:'An artist, a style, and a breakdown of the craft. In production.'},
 ];
 
-const MEGA = {
-  sketch:[["Design",[["✏️","Create a sketch","From words"],["🖌","Edit a sketch","Add, remove, replace"],["🔍","Sketch from a photo","Pull out any design"]]],
-          ["Volume & light",[["🧊","3D turnaround","Spin and pick the angle","NEW"],["💡","Relight","Same design, new mood","NEW"]]],
-          ["Print",[["📄","Stencil","Clean lines"],["🖨","Large transfer","Backs and sleeves on A4"]]]],
-  body:[["Try-on",[["🫱","Photo try-on","See it on the body"],["🎥","Video try-on","The arm moves"]]],
-        ["For the client",[["🔗","Send a link","They try it themselves"],["📐","Pick the size","Centimetres and placement"]]],
-        ["The shot",[["✨","Retouch","Portfolio grade"]]]],
-  video:[["Clips",[["🎬","Animate the tattoo","The creature moves"],["🎞","Camera pass","Cinematic reveal"]]],
-         ["Presets",[["⚡","Ready-made scenes","Light, angle, motion"]]],
-         ["Publishing",[["📲","Social formats","9:16 and 1:1"]]]],
-  apps:[["Mini-apps",[["🧩","A4 tiling","Any size across sheets"],["🎨","Palette","Colours from the design"]]],
-        ["For the studio",[["👥","Enquiries","Who tried on and wrote"],["📊","Report","What actually works"]]],
-        ["Coming",[["✳︎","Your own style","Train a model on your work","SOON"]]]],
+/* журнал — три полосы, каждая заканчивается инструментом */
+const JOURNAL = [
+  {sec:'Interviews', items:[
+    {fxk:'sweep', t:'Draga Pavlik — a line that grows like a plant',
+     d:'Organic fine-line out of Denmark. Deep ecology, figure skating, and staying human in the work.',
+     hook:'Try the style →', go:'sketch',
+     href:'https://nkey190198-hash.github.io/tattoo-tut-waitlist/interviews/draga-pavlik.html'},
+    {fxk:'blob', t:'In production — artist #2',
+     d:'A style, a working method, and the part nobody puts on Instagram.', hook:'Coming soon', go:''},
+  ]},
+  {sec:'The tattoo world', items:[
+    {fxk:'nodes', t:'What clients actually ask for this season',
+     d:'Fine-line holds, ornament is climbing, and colour is coming back on small pieces.',
+     hook:'Sketch one →', go:'sketch'},
+    {fxk:'fly', t:'The DM that turns into a booking',
+     d:'What the message looks like when a client has already seen the piece on their own arm.',
+     hook:'Send a try-on link →', go:'link'},
+    {fxk:'frame', t:'Why half your enquiries go quiet',
+     d:'The gap between “how much” and “when can you fit me in” — and what closes it.',
+     hook:'Send a try-on link →', go:'link'},
+    {fxk:'snake', t:'Instagram stopped showing your work',
+     d:'What artists are trying instead, and which of it survives contact with a real week.',
+     hook:'Make a clip →', go:'animate'},
+    {fxk:'swatch', t:'Priced by the hour or by the piece',
+     d:'What artists moving to premium changed first, and what it cost them to get there.',
+     hook:'Pull a palette →', go:'palette'},
+  ]},
+  {sec:'Craft &amp; learning', items:[
+    {fxk:'lines', t:'Stencils that survive the wipe',
+     d:'Line weight, contrast and paper — why a stencil dies halfway through a session.',
+     hook:'Make a stencil →', go:'stencil'},
+    {fxk:'pages', t:'Sizing a back piece without guessing',
+     d:'Centimetres against real body zones, and how to lay it out on A4 without losing the edge.',
+     hook:'Open A4 tiling →', go:'tiling'},
+    {fxk:'eye', t:'Selling the idea before the needle',
+     d:'A five-second clip does what three paragraphs of explaining never did.',
+     hook:'Animate one →', go:'animate'},
+    {fxk:'arm', t:'Placement on a curve',
+     d:'A design that reads flat on paper folds badly on a bicep. How to catch it before the stencil.',
+     hook:'Try it on the body →', go:'tryon'},
+    {fxk:'halo', t:'Photographing fresh ink',
+     d:'Redness, shine and phone white balance — the three things that kill a portfolio shot.',
+     hook:'Retouch a shot →', go:'retouch'},
+  ]},
+];
+
+/* прайс — канон брифа: $19/$29/$39 + $4 видео сверх плана */
+const PLANS = [
+  {id:'solo', n:'Solo', p:19, d:'One artist, a steady book.',
+   f:['120 sketches a month','20 on-body try-ons','2 animations','Stencils and A4 tiling — unmetered','Client try-on links']},
+  {id:'studio', n:'Studio', p:29, best:1, d:'You draw daily and the DMs never stop.',
+   f:['350 sketches a month','60 on-body try-ons','8 animations','3D turnaround and relight','Client links with your branding','Enquiries dashboard']},
+  {id:'master', n:'Master', p:39, d:'A full chair, or a studio of several.',
+   f:['800 sketches a month','160 on-body try-ons','20 animations','Video try-on','Priority queue','Everything in Studio']},
+];
+const FAQ = [
+  {t:'What does “founding price” mean?',
+   d:'The rate you join at stays yours for as long as the subscription runs. Launch pricing will be higher — yours will not move.'},
+  {t:'What happens when the quota runs out?',
+   d:'Nothing breaks. Extra videos are $4 each inside a plan, and sketches roll over into the next month.'},
+  {t:'Do you own what I make?',
+   d:'No. The design is yours — commercial use included. We do not train anything on your work.'},
+  {t:'Can I cancel?',
+   d:'Any time, from the profile. You keep access to the end of the paid month and everything you made stays downloadable.'},
+];
+
+/* ── рабочие окна: каждое настроено отдельно ─────────────
+   stage — что слева, fields — что справа, after — что можно
+   сделать с результатом. */
+const WORK = {
+  sketch:{stage:{k:'img',ar:'3/4'},
+    fields:[{t:'text',l:'What to draw',ph:'A coiled snake, fine-line, forearm, stretched vertically…'},
+            {t:'chips',l:'Style',v:['neo-traditional','realism','graphic','old school','ornamental','fine-line']},
+            {t:'chips',l:'Where on the body',v:['forearm','shoulder','back','ribs','leg','hand']},
+            {t:'sel',l:'Size',v:['Small · 8 cm','Medium · 15 cm','Large · 28 cm','Full sleeve · 50 cm'],def:1}],
+    cta:'Generate', note:'First option in about 40 seconds',
+    after:['stencil','tryon','render3d','animate','link']},
+  extract:{stage:{k:'img',ar:'3/4'},
+    fields:[{t:'drop',l:'The photo',e:'📷',tt:'Drop a photo in',ss:'Any shot — a healed tattoo, a poster, a drawing on paper'},
+            {t:'chips',l:'Pull out',v:['the line work','the whole design','one element']},
+            {t:'chips',l:'Clean up',v:['light','medium','hard']}],
+    cta:'Extract', note:'Lines come out separated from the background',
+    after:['stencil','sketch','tryon','bigprint']},
+  edit:{stage:{k:'img',ar:'3/4'},
+    fields:[{t:'drop',l:'The sketch',e:'🖼',tt:'Drop the sketch in',ss:'PNG or JPG up to 20 MB'},
+            {t:'text',l:'What to change',ph:'Take the roses off the left side, make the eye harder, extend the tail down…'},
+            {t:'chips',l:'How far to go',v:['touch it','rework it','redraw it']}],
+    cta:'Apply', note:'The style holds — only what you named moves',
+    after:['stencil','tryon','animate','link']},
+  stencil:{stage:{k:'img',ar:'3/4'},
+    fields:[{t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'PNG or JPG up to 20 MB'},
+            {t:'chips',l:'Line weight',v:['thin','medium','heavy']},
+            {t:'chips',l:'Shading',v:['outline only','with guides','full grey map']}],
+    cta:'Make the stencil', note:'Comes out print-ready at 1:1',
+    after:['bigprint','tiling','tryon']},
+  bigprint:{stage:{k:'sheets'},
+    fields:[{t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'The bigger the file the better'},
+            {t:'text',l:'Size in centimetres',ph:'42 × 60',inp:1},
+            {t:'chips',l:'Body zone',v:['back','sleeve','chest','thigh','ribs']},
+            {t:'sel',l:'Overlap for taping',v:['5 mm','10 mm','15 mm'],def:1}],
+    cta:'Lay it out', note:'No sheet spent on a sliver — the edge is protected',
+    after:['stencil','tiling']},
+  tryon:{stage:{k:'img',ar:'3/4'},
+    fields:[{t:'drop',l:'Photo of the body',e:'🫱',tt:'Drop the body photo in',ss:'Daylight, the whole area in frame'},
+            {t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'Transparent PNG works best'},
+            {t:'sel',l:'Size',v:['Small · 8 cm','Medium · 15 cm','Large · 28 cm','Full sleeve · 50 cm'],def:1},
+            {t:'chips',l:'Placement',v:['as shown','higher','lower','wrap it round']}],
+    cta:'Try it on', note:'Moles, scars and existing ink stay exactly as they are',
+    after:['animate','vidtryon','link','retouch']},
+  vidtryon:{stage:{k:'vid'},
+    fields:[{t:'drop',l:'Video of the body',e:'🎥',tt:'Drop a short clip in',ss:'3–8 seconds, the area moving slowly'},
+            {t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'PNG or JPG'},
+            {t:'sel',l:'Length',v:['3 seconds','5 seconds','8 seconds'],def:1}],
+    cta:'Render the clip', note:'The arm moves, the piece stays where you put it',
+    after:['animate','link','retouch']},
+  link:{stage:{k:'link'},
+    fields:[{t:'drop',l:'Designs to send',e:'🖼',tt:'Pick from your work',ss:'Up to 5 — they choose one'},
+            {t:'text',l:'A line for the client',ph:'Have a look at how this sits on you — tell me what you think.'},
+            {t:'chips',l:'What they can do',v:['try it on','try on and book','try, book, pay a deposit']}],
+    cta:'Make the link', note:'Free. You are charged only when they generate.',
+    after:['tryon','animate']},
+  render3d:{stage:{k:'3d'},
+    fields:[{t:'drop',l:'The sketch',e:'🖼',tt:'Drop a flat sketch in',ss:'Line work reads best'},
+            {t:'chips',l:'Volume',v:['soft','sculpted','hard']},
+            {t:'chips',l:'Take it back as',v:['line work','with shading','full render']}],
+    cta:'Build the turnaround', note:'Spin it, then take the angle you need',
+    after:['sketch','stencil','tryon','animate']},
+  light:{stage:{k:'img',ar:'4/3'},
+    fields:[{t:'drop',l:'The shot',e:'📷',tt:'Drop the photo in',ss:'A healed tattoo or a fresh one'},
+            {t:'pm',l:'Light',v:[['Soft studio','even, portfolio'],['Hard side','texture and relief'],
+                                 ['Warm evening','skin looks alive'],['Cold neon','story energy']]},
+            {t:'chips',l:'Strength',v:['subtle','normal','strong']}],
+    cta:'Relight', note:'The ink is not touched — only the light around it',
+    after:['retouch','animate','link']},
+  animate:{stage:{k:'vid'},
+    fields:[{t:'drop',l:'Design or photo',e:'🖼',tt:'Drop it in',ss:'A sketch or a shot of the healed piece'},
+            {t:'pm',l:'The hook',v:[['Cobra strike','lunges at the camera'],['Spin & fly','twists up and out'],
+                                    ['Ink bloom','bleeds in like ink in water'],['Skin wake','the creature breathes'],
+                                    ['Neon pass','a light sweeps across'],['Camera dive','the camera falls in']]},
+            {t:'sel',l:'Length',v:['3 seconds','5 seconds'],def:1},
+            {t:'chips',l:'Format',v:['9:16','1:1','16:9']}],
+    cta:'Animate', note:'The hook has to land in the first two seconds',
+    after:['link','retouch','vidtryon']},
+  retouch:{stage:{k:'img',ar:'4/3'},
+    fields:[{t:'drop',l:'The shot',e:'📷',tt:'Drop the photo in',ss:'Straight off the phone is fine'},
+            {t:'chips',l:'Fix',v:['redness','light','clarity','all of it']},
+            {t:'chips',l:'Strength',v:['subtle','normal','strong']}],
+    cta:'Retouch', note:'Portfolio grade — skin keeps its texture',
+    after:['light','link','animate']},
+  tiling:{stage:{k:'sheets'},
+    fields:[{t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'Stencil or line work'},
+            {t:'text',l:'Size in centimetres',ph:'30 × 45',inp:1},
+            {t:'chips',l:'Body zone',v:['back','sleeve','chest','thigh','ribs']}],
+    cta:'Lay it out', note:'Free — you pay only for what generated the design',
+    after:['bigprint','stencil']},
+  palette:{stage:{k:'img',ar:'4/3'},
+    fields:[{t:'drop',l:'The design',e:'🎨',tt:'Drop the design in',ss:'Colour work reads best'},
+            {t:'sel',l:'How many colours',v:['4','6','8','12'],def:1}],
+    cta:'Pull the palette', note:'Free — comes out as ink codes you can mix from',
+    after:['sketch','stencil']},
 };
 
-/* ── отрисовка ──────────────────────────────────────────── */
-const anim = a => ({
-  eye:'<div class="grid3d"></div><div class="orb"><div class="eye"></div></div>',
-  blob:'<div class="orb"><div class="blob"></div></div>',
-  grid:'<div class="grid3d"></div>',
-  sweep:'<div class="sweep"></div>',
-  fly:'<div class="grid3d"></div><div class="fly"></div>',
-}[a] || '');
+/* ═══════════════ ЯЗЫКИ ═══════════════ */
+const DICT = {
+ en:{},
+ ru:{h1:'Мастерская тату-мастера',
+   sub:'Эскиз, трафарет, примерка на теле, 3D-разворот и оживление — в одном окне. Машинка остаётся в твоей руке, последнее слово по каждой линии тоже.',
+   cmd_ph:'Опиши работу — свернувшаяся змея, fine-line, предплечье, вертикально…',
+   cmd_in:'в', create:'Создать', back:'Назад', topup:'Пополнить', cr:'кр',
+   signin:'Войти', tools:'Инструменты',
+   tools_sub:'Всё, что съедает вечера — эскизы, трафареты, примерки, ролики.',
+   ups:'Апсы', ups_sub:'Открываешь — и сразу видно, что это и как с этим работать.',
+   prs:'Видео-пресеты', prs_sub:'Пять секунд. Хук заходит в первые две.',
+   prs_more:'Открыть студию →',
+   whats_new:'Что нового', weekly:'обновляется каждую неделю',
+   jrn:'Журнал и обучение', jrn_sub:'Прочитал — пошёл сделал. Каждый материал заканчивается инструментом.',
+   jrn_more:'Всё целиком →', jrn_h1:'Журнал и обучение',
+   jrn_sub2:'Интервью, что происходит в тату-мире, разборы ремесла. Одна воронка: прочитал, открыл инструмент, стал сильнее.',
+   pl:'Тарифы', pl_sub:'Цена входа остаётся твоей навсегда.', pl_more:'Сравнить →',
+   pl_h1:'Тарифы основателей',
+   pl_sub2:'Три уровня, дешёвых разовых пакетов нет. Цена, по которой вошёл, — твоя навсегда: на запуске она не изменится.',
+   pl_q:'Прямые ответы',
+   what:'Что делаем?', what_sub:'Выбери — и сразу попадёшь в рабочее окно',
+   tab_home:'Главная', tab_jrn:'Журнал', tab_pl:'Тарифы', tab_me:'Профиль',
+   ft:'Сделано практикующим тату-мастером',
+   pr_since:'С нами с марта', demo:'ДЕМО-ДАННЫЕ', pr_left:'кредитов осталось',
+   pr_ev:'вечеров тебе вернулось',
+   pr_ev_d:'Вот что инструмент реально купил. Не функции — часы, которые ты не просидел за перерисовкой в полночь.',
+   pr_math:'142 эскиза × ~40 мин ≈ 95 ч ≈ 31 вечер (по 3 часа)',
+   pr_act:'Активность', pr_act_s:'последние 16 недель',
+   pr_recent:'Последние работы', pr_recent_s:'всё, что сделал, остаётся здесь',
+   demo_note:'Цифры демонстрационные — панель подключится к живым данным, когда включим аккаунты.',
+   promo_b:'Оживить тату — $4.99',
+   promo_t:'только в этом месяце · существо на коже начинает двигаться',
+   promo_cta:'Попробовать →'},
+ de:{h1:'Das Studio des Tätowierers', create:'Erstellen', tools:'Werkzeuge',
+   signin:'Anmelden', back:'Zurück', topup:'Aufladen', pl:'Tarife',
+   whats_new:'Neu', jrn:'Journal', tab_home:'Start', tab_me:'Profil',
+   promo_b:'Tattoo animieren — 4,99 $'},
+ fr:{h1:'L’atelier du tatoueur', create:'Créer', tools:'Outils',
+   signin:'Connexion', back:'Retour', topup:'Recharger', pl:'Offres',
+   whats_new:'Nouveautés', jrn:'Journal', tab_home:'Accueil', tab_me:'Profil',
+   promo_b:'Animer un tatouage — 4,99 $'},
+ es:{h1:'El estudio del tatuador', create:'Crear', tools:'Herramientas',
+   signin:'Entrar', back:'Volver', topup:'Recargar', pl:'Planes',
+   whats_new:'Novedades', jrn:'Revista', tab_home:'Inicio', tab_me:'Perfil',
+   promo_b:'Animar un tatuaje — 4,99 $'},
+ it:{h1:'Lo studio del tatuatore', create:'Crea', tools:'Strumenti',
+   signin:'Accedi', back:'Indietro', topup:'Ricarica', pl:'Piani',
+   whats_new:'Novità', jrn:'Rivista', tab_home:'Home', tab_me:'Profilo',
+   promo_b:'Anima un tatuaggio — 4,99 $'},
+ pl:{h1:'Pracownia tatuażysty', create:'Twórz', tools:'Narzędzia',
+   signin:'Zaloguj', back:'Wstecz', topup:'Doładuj', pl:'Plany',
+   whats_new:'Nowości', jrn:'Magazyn', tab_home:'Start', tab_me:'Profil',
+   promo_b:'Ożyw tatuaż — 4,99 $'},
+ cs:{h1:'Ateliér tatéra', create:'Vytvořit', tools:'Nástroje',
+   signin:'Přihlásit', back:'Zpět', topup:'Dobít', pl:'Tarify',
+   whats_new:'Novinky', jrn:'Magazín', tab_home:'Domů', tab_me:'Profil',
+   promo_b:'Oživte tetování — 4,99 $'},
+ nl:{h1:'De studio van de tatoeëerder', create:'Maken', tools:'Gereedschap',
+   signin:'Inloggen', back:'Terug', topup:'Bijvullen', pl:'Pakketten',
+   whats_new:'Nieuw', jrn:'Journaal', tab_home:'Home', tab_me:'Profiel',
+   promo_b:'Animeer een tattoo — $4,99'},
+ pt:{h1:'O estúdio do tatuador', create:'Criar', tools:'Ferramentas',
+   signin:'Entrar', back:'Voltar', topup:'Recarregar', pl:'Planos',
+   whats_new:'Novidades', jrn:'Revista', tab_home:'Início', tab_me:'Perfil',
+   promo_b:'Animar uma tatuagem — 4,99 $'},
+};
+let LANG = 'en';
+const T = (k,fb) => (DICT[LANG] && DICT[LANG][k] !== undefined) ? DICT[LANG][k] : fb;
 
-document.getElementById("feed").innerHTML = FEED.map(f=>`
-  <article class="card">
-    <div class="stage">${anim(f.anim)}
-      <span class="badge${f.soft?" soft":""}">${f.badge}</span></div>
-    <div class="meta"><div class="k">${f.k}</div><h3>${f.t}</h3><p>${f.d}</p></div>
-  </article>`).join("");
+/* ═══════════════ ОТРИСОВКА ═══════════════ */
+let FILTER = 'all';
+const $ = id => document.getElementById(id);
 
-document.getElementById("tools").innerHTML = FN.map(f=>`
-  <article class="card" onclick="openGen('${f.id}')">
-    <div class="stage">${anim(f.anim)}
-      ${f.tag?`<span class="badge">${f.tag}</span>`:""}</div>
-    <div class="meta"><h3>${f.e} ${f.n}</h3><p>${f.h}</p></div>
-  </article>`).join("");
+function renderNav(){
+  const items = [['sketch','Sketch'],['body','On body'],['video','Video'],['apps','Mini-apps']];
+  $('mainnav').innerHTML =
+    items.map(([k,n])=>`<a data-mega="${k}">${T('nav_'+k,n)}</a>`).join('') +
+    `<a onclick="go('journal')">${T('jrn','Journal')}</a>` +
+    `<a onclick="go('pricing')">${T('pl','Plans')}</a>`;
+  bindMega();
+}
 
-document.getElementById("picks").innerHTML = FN.map(f=>`
-  <button class="pick" onclick="openGen('${f.id}')">
-    <div class="e">${f.e}</div><div class="n">${f.n}</div><div class="h">${f.h}</div>
-  </button>`).join("");
+function renderFilters(){
+  $('filters').innerHTML = CATS.map(c=>{
+    const n = c.id==='all' ? FN.length : FN.filter(f=>f.cat===c.id).length;
+    return `<a class="fl${FILTER===c.id?' on':''}" onclick="setFilter('${c.id}')">
+      <span class="dot"></span>${T('cat_'+c.id,c.n)}<span class="ct">${n}</span></a>`;
+  }).join('') + `<span class="spacer"></span>
+    <a class="fl" onclick="go('pricing')">${T('topup','Top up')}</a>`;
+}
 
-const chip=(a,id)=>document.getElementById(id).innerHTML=
-  a.map((s,i)=>`<span class="chip${i==0?" on":""}" onclick="pick(this)">${s}</span>`).join("");
-chip(["неотрадишнл","реализм","графика","олдскул","орнамент","fine-line"],"styles");
-chip(["предплечье","плечо","спина","рёбра","нога","кисть"],"places");
-window.pick=el=>{[...el.parentNode.children].forEach(c=>c.classList.remove("on"));
-  el.classList.add("on")};
+function renderTiles(){
+  const list = FILTER==='all' ? FN : FN.filter(f=>f.cat===FILTER);
+  $('tiles').innerHTML = list.map(f=>`
+    <article class="tile" onclick="openWork('${f.id}')">
+      ${fx(f.fxk)}
+      ${f.tag?`<span class="corner"><span class="tag">${f.tag}</span></span>`:''}
+      <span class="cost">${f.cost?f.cost+' cr':T('free','free')}</span>
+      <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div>
+        <div class="h">${T('h_'+f.id,f.h)}</div></div>
+    </article>`).join('');
+  $('fcount').textContent = `${list.length} / ${FN.length}`;
+}
+window.setFilter = c => { FILTER = c; renderFilters(); renderTiles(); };
 
-/* ── мегаменю ───────────────────────────────────────────── */
+function renderCubes(){
+  $('cubes').innerHTML = CUBES.map(c=>`
+    <article class="cube">
+      <div class="demo always">${fx(c.fxk)}</div>
+      <div class="body">
+        <h3>${T('t_'+c.id,c.n)}</h3>
+        <div class="d">${T('cd_'+c.id,c.d)}</div>
+        <ol>${c.steps.map((s,i)=>`<li><i>${i+1}</i>${T('cs_'+c.id+'_'+i,s)}</li>`).join('')}</ol>
+        <div class="foot">
+          <button class="btn" onclick="openWork('${c.id}')">${T('open','Open')}</button>
+          <span class="eyebrow">${T('incl','in Studio and up')}</span>
+        </div>
+      </div>
+    </article>`).join('');
+}
+
+function renderPresets(){
+  $('presets').innerHTML = PRESETS.map(p=>`
+    <article class="preset" onclick="openWork('animate')">
+      ${fx(p.fxk)}<span class="sec-badge">5s</span>
+      <div class="cap"><div class="n">${T('p_'+p.id,p.n)}</div>
+        <div class="h">${T('ph_'+p.id,p.h)}</div></div>
+    </article>`).join('');
+}
+
+function renderFeed(){
+  $('feed').innerHTML = FEED.map((f,i)=>{
+    const act = f.href ? `onclick="window.open('${f.href}','_blank','noopener')"`
+              : f.go ? `onclick="openWork('${f.go}')"` : '';
+    return `<article class="ncard" ${act}>
+      <div class="media always">${fx(f.fxk)}
+        <span style="position:absolute;left:9px;top:9px;z-index:3"
+          class="tag${f.badge==='SOON'?' q':''}">${f.badge}</span></div>
+      <div class="meta"><div class="eyebrow">${T('fk_'+i,f.k)}</div>
+        <h3>${T('ft_'+i,f.t)}</h3><p>${T('fd_'+i,f.d)}</p></div>
+    </article>`;
+  }).join('');
+}
+
+function jcards(items){
+  return items.map(it=>{
+    const act = it.href ? `onclick="window.open('${it.href}','_blank','noopener')"`
+              : it.go ? `onclick="openWork('${it.go}')"` : '';
+    return `<article class="jcard" ${act}>
+      <div class="media">${fx(it.fxk)}</div>
+      <div class="b"><h4>${it.t}</h4><p>${it.d}</p>
+        <div class="hook">${it.hook||''} <span></span></div></div>
+    </article>`;
+  }).join('');
+}
+function renderJournal(){
+  $('journalHome').innerHTML = jcards(
+    [JOURNAL[0].items[0], JOURNAL[1].items[0], JOURNAL[1].items[3],
+     JOURNAL[2].items[0], JOURNAL[2].items[2]]);
+  $('journalFull').innerHTML = JOURNAL.map(g=>`
+    <div class="sec"><div class="sec-hd"><h2>${g.sec}</h2></div>
+      <div class="jrn">${jcards(g.items)}</div></div>`).join('');
+}
+
+function planCard(p){
+  return `<article class="plan${p.best?' best':''}">
+    ${p.best?`<span class="rib"><span class="tag">${T('popular','MOST TAKEN')}</span></span>`:''}
+    <div class="pn">${p.n}</div>
+    <div class="pp"><b>$${p.p}</b><span>/ ${T('mo','month')}</span></div>
+    <div class="pd">${T('pd_'+p.id,p.d)}</div>
+    <ul>${p.f.map((f,i)=>`<li>${T('pf_'+p.id+'_'+i,f)}</li>`).join('')}</ul>
+    <button class="btn wide${p.best?'':' ghost'}">${T('choose','Choose')} ${p.n}</button>
+  </article>`;
+}
+function renderPlans(){
+  $('plansHome').innerHTML = PLANS.map(planCard).join('');
+  $('plansFull').innerHTML = PLANS.map(planCard).join('');
+  $('extras').innerHTML = `
+    <div class="x"><b>$4</b><span>${T('ex1','extra animation, inside any plan')}</span></div>
+    <div class="x"><b>$4.99</b><span>${T('ex2','one-off animation, no plan')}</span></div>
+    <div class="x"><b>${T('ex3f','Free')}</b><span>${T('ex3','client try-on links, A4 tiling, palette')}</span></div>
+    <div class="x"><b>${T('ex4f','Locked')}</b><span>${T('ex4','founding price does not move at launch')}</span></div>`;
+  $('faq').innerHTML = FAQ.map((f,i)=>`
+    <article class="jcard" style="cursor:default">
+      <div class="b"><h4>${T('fqt_'+i,f.t)}</h4><p>${T('fqd_'+i,f.d)}</p></div>
+    </article>`).join('');
+}
+
+function renderProfile(){
+  const S = [
+    {n:'142', l:T('s1','sketches made'),      t:'+18 '+T('wk','this week')},
+    {n:'63',  l:T('s2','on-body try-ons'),    t:'+7 '+T('wk','this week')},
+    {n:'29',  l:T('s3','links sent to clients'), t:''},
+    {n:'11',  l:T('s4','enquiries that came back'), t:'38% '+T('conv','of links')},
+    {n:'8',   l:T('s5','animations'),          t:''},
+    {n:'4.6', l:T('s6','average rating you gave'), t:T('of5','out of 5')},
+  ];
+  $('pstats').innerHTML = S.map(s=>`<div class="stat"><div class="n">${s.n}</div>
+    <div class="l">${s.l}</div>${s.t?`<div class="t">${s.t}</div>`:''}</div>`).join('');
+  /* активность: детерминированный узор, не случайный — чтобы не «прыгал» */
+  let h='';
+  for(let w=0;w<16;w++){ h+='<div class="w">';
+    for(let d=0;d<7;d++){
+      const v=(w*7+d*3)%11, on=v>4;
+      const op=on?(v>8?.95:v>6?.6:.32):0;
+      h+=`<div class="d" style="${op?`background:color-mix(in srgb,var(--lime) ${Math.round(op*100)}%,var(--sunk))`:''}"></div>`;
+    } h+='</div>'; }
+  $('heat').innerHTML=h;
+  $('recent').innerHTML = FN.slice(0,12).map(f=>`
+    <article class="tile" onclick="openWork('${f.id}')">${fx(f.fxk)}
+      <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div></div></article>`).join('');
+}
+
+function renderPicks(){
+  $('picks').innerHTML = FN.map(f=>`
+    <button class="pick" onclick="openWork('${f.id}')">
+      <div class="e">${f.e}</div><div class="n">${T('t_'+f.id,f.n)}</div>
+      <div class="h">${T('h_'+f.id,f.h)}</div></button>`).join('');
+}
+
+/* ═══════════════ МЕГАМЕНЮ ═══════════════ */
+const MEGA = {
+  sketch:[['Design',['sketch','edit','extract']],['Volume & light',['render3d','light']],
+          ['Print',['stencil','bigprint']]],
+  body:[['Try-on',['tryon','vidtryon']],['For the client',['link']],['The shot',['retouch']]],
+  video:[['Clips',['animate','vidtryon']],['Presets',['animate']],['For the client',['link']]],
+  apps:[['Mini-apps',['tiling','palette']],['Print',['stencil','bigprint']],
+        ['Volume',['render3d','light']]],
+};
 let mt=null;
-document.querySelectorAll("nav.main a[data-mega]").forEach(a=>{
-  a.onmouseenter=()=>{clearTimeout(mt);
-    const cols=MEGA[a.dataset.mega]||[];
-    document.getElementById("megaCols").innerHTML=cols.map(([h,items])=>`
-      <div><h5>${h}</h5>${items.map(([e,t,d,tg])=>`
-        <a class="item"><span class="ic">${e}</span><span>
-          <span class="t">${t}${tg?`<span class="tag">${tg}</span>`:""}</span>
-          <span class="d">${d}</span></span></a>`).join("")}</div>`).join("");
-    document.getElementById("mega").classList.add("on")};
-});
-document.getElementById("mega").onmouseleave=
-  ()=>mt=setTimeout(()=>document.getElementById("mega").classList.remove("on"),120);
-document.getElementById("mega").onmouseenter=()=>clearTimeout(mt);
-document.querySelector("header").onmouseleave=
-  ()=>mt=setTimeout(()=>document.getElementById("mega").classList.remove("on"),160);
+function bindMega(){
+  document.querySelectorAll('nav.main a[data-mega]').forEach(a=>{
+    a.onmouseenter=()=>{clearTimeout(mt);
+      $('megaCols').innerHTML=(MEGA[a.dataset.mega]||[]).map(([h,ids])=>`
+        <div><h5 class="eyebrow">${h}</h5>${ids.map(id=>{
+          const f=FN.find(x=>x.id===id); if(!f) return '';
+          return `<a class="item" onclick="openWork('${f.id}')">
+            <span class="ic">${f.e}</span><span>
+            <span class="t">${T('t_'+f.id,f.n)}</span>
+            <span class="d">${T('h_'+f.id,f.h)}</span></span></a>`;}).join('')}</div>`).join('');
+      $('mega').classList.add('on');};
+  });
+}
+$('mega').onmouseleave=()=>mt=setTimeout(()=>$('mega').classList.remove('on'),120);
+$('mega').onmouseenter=()=>clearTimeout(mt);
+document.querySelector('header').onmouseleave=
+  ()=>mt=setTimeout(()=>$('mega').classList.remove('on'),160);
 
-/* ── навигация ──────────────────────────────────────────── */
-window.openSheet=()=>document.getElementById("sheet").classList.add("on");
-window.closeSheet=()=>document.getElementById("sheet").classList.remove("on");
-window.openGen=id=>{
-  const f=FN.find(x=>x.id===id)||FN[0];
-  document.getElementById("genTitle").textContent=f.n;
-  closeSheet();
-  document.getElementById("home").style.display="none";
-  document.getElementById("gen").classList.add("on");
+/* ═══════════════ РОУТЕР ═══════════════ */
+const VIEWS=['home','work','profile','pricing','journal'];
+window.go = v => {
+  VIEWS.forEach(x=>$('v-'+x).classList.toggle('hidden',x!==v));
+  /* фильтр витрины принадлежит главной — в рабочем окне это шум */
+  $('filters').classList.toggle('hidden', v!=='home');
+  document.querySelectorAll('.tabbar div').forEach(d=>d.classList.remove('on'));
+  const map={home:0,journal:1,pricing:3,profile:4};
+  if(map[v]!==undefined) document.querySelectorAll('.tabbar div')[map[v]].classList.add('on');
+  $('mega').classList.remove('on');
+  if(v==='profile') renderProfile();
   scrollTo(0,0);
 };
-window.closeGen=()=>{
-  document.getElementById("gen").classList.remove("on");
-  document.getElementById("home").style.display="";
+
+/* ═══════════════ РАБОЧЕЕ ОКНО ═══════════════ */
+/* рамка результата держит пропорцию самого формата — вертикальное
+   видео не должно растягиваться в чёрную плиту на всю колонку */
+const STAGE_BOX = {
+  img34:'aspect-ratio:3/4;max-width:430px',  img43:'aspect-ratio:4/3;max-width:100%',
+  vid:'aspect-ratio:9/16;max-width:330px',   sheets:'aspect-ratio:4/3;max-width:100%',
+  link:'aspect-ratio:4/3;max-width:100%',    '3d':'aspect-ratio:1;max-width:470px',
 };
-window.toggleRotor=()=>{
-  const r=document.getElementById("rotor"),s=document.getElementById("sld"),
-        d=document.getElementById("dropIn");
-  const on=r.classList.toggle("on");
-  s.style.display=on?"flex":"none"; d.style.display=on?"none":"";
-};
-document.getElementById("ang").oninput=e=>{
-  document.querySelector(".rotor .obj").style.transform=`rotate(${e.target.value}deg)`;
+const boxFor = w => w.stage.k==='img'
+  ? (w.stage.ar==='4/3' ? STAGE_BOX.img43 : STAGE_BOX.img34)
+  : (STAGE_BOX[w.stage.k] || STAGE_BOX.img43);
+
+const STAGES = {
+  img: ()=>`<div class="empty"><div class="big">🖼</div>
+      <div class="t">${T('st_img','Your result lands here')}</div>
+      <div class="s">${T('st_img_s','Fill the panel on the right and press the button. First option in about 40 seconds.')}</div></div>`,
+  vid: ()=>`<div class="empty"><div class="big">🎬</div>
+      <div class="t">${T('st_vid','Five seconds, vertical')}</div>
+      <div class="s">${T('st_vid_s','Pick a hook on the right. It has to land in the first two seconds.')}</div></div>`,
+  sheets: ()=>`<div class="sheets">${'<div></div>'.repeat(9)}</div>
+    <div class="empty" style="position:absolute;bottom:8px;left:0;right:0">
+      <div class="s">${T('st_sh','9 sheets · A4 · 10 mm overlap · nothing wasted on a sliver')}</div></div>`,
+  link: ()=>{
+    let q=''; for(let i=0;i<121;i++){ q+=`<i class="${((i*7+(i%11)*3)%5<2)?'':'off'}"></i>`; }
+    return `<div class="linkbox"><div class="url">tattoo.tut/t/9f3k2</div>
+      <div class="qr">${q}</div>
+      <div class="s" style="opacity:.6;font-size:11.5px;margin-top:14px">
+        ${T('st_lk','They open it, try the piece on, and write to you. Free until they generate.')}</div></div>`;
+  },
+  '3d': ()=>`${fx('eye')}<div class="empty" style="z-index:5">
+      <div class="t">${T('st_3d','Drag to spin')}</div></div>
+    <div class="slider"><input type="range" min="0" max="360" value="0" id="ang3d">
+      <span id="angv">0°</span></div>`,
 };
 
-/* ── языки ──────────────────────────────────────────────── */
-const I18N={
- en:{},
- ru:{h1:"Мастерская тату-мастера.<br>Целиком в браузере.",
-   sub:"Эскиз, трафарет, примерка на теле, 3D-разворот и оживление — в одном окне. Машинка остаётся в твоей руке, последнее слово по каждой линии тоже.",
-   create:"Создать",whats_new:"Что нового",weekly:"обновляется каждую неделю",
-   tools:"Инструменты",tools_sub:"Всё, что съедает вечера — эскизы, трафареты, примерки, ролики.",
-   what:"Что делаем?",what_sub:"Выбери — и сразу попадёшь в рабочее окно",
-   signin:"Войти",credits:"240 кредитов",tab_home:"Главная",tab_apps:"Аппы",
-   tab_lib:"Работы",tab_me:"Профиль",brand:"ТАТУ ТУТ"},
- es:{h1:"El estudio del tatuador.<br>Todo, en tu navegador.",
-   sub:"Boceto, plantilla, prueba en el cuerpo, giro 3D y animación — en una sola ventana.",
-   create:"Crear",whats_new:"Novedades",weekly:"cada semana",tools:"Herramientas",
-   tools_sub:"Todo lo que se come tus tardes — bocetos, plantillas, pruebas, clips.",
-   what:"¿Qué hacemos?",what_sub:"Elige y entras directo al taller",
-   signin:"Entrar",credits:"240 créditos",tab_home:"Inicio",tab_apps:"Apps",
-   tab_lib:"Trabajos",tab_me:"Perfil"},
- de:{h1:"Das Studio des Tätowierers.<br>Komplett im Browser.",
-   sub:"Entwurf, Schablone, Anprobe am Körper, 3D-Drehung und Animation — in einem Fenster.",
-   create:"Erstellen",whats_new:"Neu",weekly:"jede Woche",tools:"Werkzeuge",
-   tools_sub:"Alles, was Abende frisst — Entwürfe, Schablonen, Anproben, Clips.",
-   what:"Was machen wir?",what_sub:"Wähle — und du bist direkt im Arbeitsfenster",
-   signin:"Anmelden",credits:"240 Credits",tab_home:"Start",tab_apps:"Apps",
-   tab_lib:"Arbeiten",tab_me:"Profil"},
- fr:{h1:"L’atelier du tatoueur.<br>Entièrement dans le navigateur.",
-   create:"Créer",whats_new:"Nouveautés",tools:"Outils",signin:"Connexion",
-   tab_home:"Accueil",tab_lib:"Travaux",tab_me:"Profil",
-   promo_b:"Animer un tatouage — 4,99 $"},
- it:{h1:"Lo studio del tatuatore.<br>Tutto nel browser.",
-   create:"Crea",whats_new:"Novità",tools:"Strumenti",signin:"Accedi",
-   tab_home:"Home",tab_lib:"Lavori",tab_me:"Profilo",
-   promo_b:"Anima un tatuaggio — 4,99 $"},
- pl:{h1:"Pracownia tatuażysty.<br>W całości w przeglądarce.",
-   create:"Twórz",whats_new:"Nowości",tools:"Narzędzia",signin:"Zaloguj",
-   tab_home:"Start",tab_lib:"Prace",tab_me:"Profil",
-   promo_b:"Ożyw tatuaż — 4,99 $"},
- cs:{h1:"Ateliér tatéra.<br>Celý v prohlížeči.",
-   create:"Vytvořit",whats_new:"Novinky",tools:"Nástroje",signin:"Přihlásit",
-   tab_home:"Domů",tab_lib:"Práce",tab_me:"Profil",
-   promo_b:"Oživte tetování — 4,99 $"},
- nl:{h1:"De studio van de tatoeëerder.<br>Volledig in je browser.",
-   create:"Maken",whats_new:"Nieuw",tools:"Gereedschap",signin:"Inloggen",
-   tab_home:"Home",tab_lib:"Werk",tab_me:"Profiel",
-   promo_b:"Animeer een tattoo — $4,99"},
- pt:{h1:"O estúdio do tatuador.<br>Tudo no navegador.",
-   sub:"Desenho, stencil, prova no corpo, giro 3D e animação — numa só janela.",
-   create:"Criar",whats_new:"Novidades",weekly:"toda semana",tools:"Ferramentas",
-   tools_sub:"Tudo o que consome suas noites — desenhos, stencils, provas, clipes.",
-   what:"O que vamos criar?",what_sub:"Escolha e entre direto no ateliê",
-   signin:"Entrar",credits:"240 créditos",tab_home:"Início",tab_apps:"Apps",
-   tab_lib:"Trabalhos",tab_me:"Perfil"},
-};
-const EN={};
-document.querySelectorAll("[data-i]").forEach(el=>EN[el.dataset.i]=el.innerHTML);
-function setLang(L){
-  const d=L==="en"?EN:Object.assign({},EN,I18N[L]||{});
-  document.querySelectorAll("[data-i]").forEach(el=>{
-    if(d[el.dataset.i]!==undefined) el.innerHTML=d[el.dataset.i];});
-  document.documentElement.lang=L;
-  try{localStorage.setItem("lang",L)}catch(e){}
+function field(f,i){
+  const l=`<label>${f.l}</label>`;
+  if(f.t==='text' && f.inp) return `<div class="fld">${l}
+    <input type="text" placeholder="${f.ph}"></div>`;
+  if(f.t==='text') return `<div class="fld">${l}<textarea placeholder="${f.ph}"></textarea></div>`;
+  if(f.t==='sel') return `<div class="fld">${l}<select>${
+    f.v.map((o,j)=>`<option${j===f.def?' selected':''}>${o}</option>`).join('')}</select></div>`;
+  if(f.t==='chips') return `<div class="fld">${l}<div class="chips">${
+    f.v.map((o,j)=>`<span class="chip${j===0?' on':''}" onclick="pickChip(this)">${o}</span>`)
+      .join('')}</div></div>`;
+  if(f.t==='pm') return `<div class="fld">${l}<div class="presetmini">${
+    f.v.map(([n,h],j)=>`<div class="pm${j===0?' on':''}" onclick="pickChip(this)">
+      <div class="n">${n}</div><div class="h">${h}</div></div>`).join('')}</div></div>`;
+  if(f.t==='drop') return `<div class="fld">${l}<div class="drop">
+    <div class="e">${f.e}</div><div class="t">${f.tt}</div><div class="s">${f.ss}</div></div></div>`;
+  return '';
 }
-const saved=(()=>{try{return localStorage.getItem("lang")}catch(e){return null}})();
-const L0=saved||"en";
-document.getElementById("lang").value=L0; setLang(L0);
-document.getElementById("lang").onchange=e=>setLang(e.target.value);
+window.pickChip = el => {
+  [...el.parentNode.children].forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+};
 
-/* ── тема ───────────────────────────────────────────────── */
-document.getElementById("theme").onclick=()=>{
+window.openWork = id => {
+  const f = FN.find(x=>x.id===id) || FN[0];
+  const w = WORK[id] || WORK.sketch;
+  $('wkTitle').textContent = `${f.e} ${T('t_'+id,f.n)}`;
+  $('wkTag').textContent = T('h_'+id,f.h);
+  $('wkStage').style.cssText = boxFor(w);
+  $('wkStage').innerHTML = (STAGES[w.stage.k]||STAGES.img)(w.stage);
+  $('wkPanel').innerHTML = w.fields.map(field).join('') +
+    `<div class="gorow">
+       <button class="btn wide big">${T('cta_'+id,w.cta)}
+         ${f.cost?`· ${f.cost} ${T('cr','cr')}`:''}</button>
+       <div class="cost-note">${T('note_'+id,w.note)}</div>
+       <div class="cost-note"><b>248</b> ${T('cr_left','credits left')} ·
+         <a onclick="go('pricing')">${T('topup','Top up')}</a></div>
+     </div>`;
+  /* что можно сделать с результатом — переход в соседний инструмент */
+  $('wkAfter').innerHTML = `<span class="lb">${T('then','Then:')}</span>` +
+    (w.after||[]).map(a=>{ const t=FN.find(x=>x.id===a); return t?
+      `<span class="pill" onclick="openWork('${a}')">${t.e} ${T('t_'+a,t.n)}</span>`:''; }).join('') +
+    `<span class="pill">⬇️ ${T('dl','Download')}</span>`;
+  const s=$('ang3d');
+  if(s) s.oninput=e=>{
+    $('angv').textContent=e.target.value+'°';
+    const el=document.querySelector('#wkStage .eye');
+    if(el) el.style.transform=`rotate(${e.target.value}deg)`;
+  };
+  closeSheet(); go('work');
+};
+
+/* ═══════════════ КОМАНДНАЯ СТРОКА ═══════════════ */
+let CMD_TOOL='sketch';
+window.cmdGo = () => openWork(CMD_TOOL);
+window.openSheet = () => $('sheet').classList.add('on');
+window.closeSheet = () => $('sheet').classList.remove('on');
+
+/* ═══════════════ ЯЗЫК И ТЕМА ═══════════════ */
+const EN={};
+document.querySelectorAll('[data-i]').forEach(el=>EN[el.dataset.i]=el.innerHTML);
+document.querySelectorAll('[data-ph]').forEach(el=>EN['ph:'+el.dataset.ph]=el.placeholder);
+function applyI18n(){
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    el.innerHTML = T(el.dataset.i, EN[el.dataset.i]);});
+  document.querySelectorAll('[data-ph]').forEach(el=>{
+    el.placeholder = T(el.dataset.ph, EN['ph:'+el.dataset.ph]);});
+  document.documentElement.lang = LANG;
+}
+function renderAll(){
+  applyI18n(); renderNav(); renderFilters(); renderTiles(); renderCubes();
+  renderPresets(); renderFeed(); renderJournal(); renderPlans(); renderPicks();
+  $('cmdTool').textContent = T('t_'+CMD_TOOL, FN.find(f=>f.id===CMD_TOOL).n);
+}
+function setLang(L){ LANG=L; try{localStorage.setItem('lang',L)}catch(e){} renderAll(); }
+const saved=(()=>{try{return localStorage.getItem('lang')}catch(e){return null}})();
+$('lang').value = saved||'en';
+setLang(saved||'en');
+$('lang').onchange = e => setLang(e.target.value);
+
+const savedT=(()=>{try{return localStorage.getItem('theme')}catch(e){return null}})();
+if(savedT) document.documentElement.dataset.theme=savedT;
+$('theme').onclick=()=>{
   const r=document.documentElement;
-  r.dataset.theme = r.dataset.theme==="dark" ? "light" : "dark";
+  r.dataset.theme = r.dataset.theme==='dark' ? 'light' : 'dark';
+  try{localStorage.setItem('theme',r.dataset.theme)}catch(e){}
 };
 </script>
 </body>
