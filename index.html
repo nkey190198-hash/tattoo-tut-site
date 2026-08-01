@@ -24,7 +24,8 @@ body{background:var(--bg);color:var(--ink);
   font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;
   -webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+.wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+@media(max-width:640px){.wrap{padding:0 18px}}
 
 /* ── шапка ─────────────────────────────────────────────── */
 header{position:sticky;top:0;z-index:60;height:auto;
@@ -104,7 +105,7 @@ header{top:0}
 .feed-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
 .feed-hd h2{font-size:19px;letter-spacing:-.3px}
 .feed-hd span{font-size:13px;color:var(--ink-2)}
-.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(300px,1fr);
+.rail{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(272px,1fr);
   gap:14px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory}
 .rail::-webkit-scrollbar{height:6px}
 .rail::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px}
