@@ -31,35 +31,50 @@ header{position:sticky;top:0;z-index:60;height:auto;
   background:color-mix(in srgb,var(--bg) 88%,transparent);
   backdrop-filter:saturate(1.4) blur(14px);border-bottom:1px solid var(--line)}
 .hd{height:var(--nav);display:flex;align-items:center;gap:26px}
-.logo{font-weight:800;letter-spacing:-.4px;font-size:17px;white-space:nowrap}
-.logo b{color:var(--ink)}
-.logo i{font-style:normal;opacity:.45}
+.logo{display:flex;align-items:center;gap:9px;white-space:nowrap;cursor:pointer}
+.logo .mark{width:34px;height:34px;border-radius:11px;background:var(--ink);
+  color:var(--accent);display:grid;place-items:center;font-size:19px;flex:none}
+:root[data-theme="dark"] .logo .mark{background:var(--card);
+  border:1px solid var(--line)}
+.logo b{font-size:19px;font-weight:800;letter-spacing:-.5px;color:var(--ink)}
 nav.main{display:flex;gap:2px;flex:1}
 nav.main a{padding:8px 12px;border-radius:9px;color:var(--ink-2);font-weight:600;
   font-size:14px;position:relative;cursor:pointer}
 nav.main a:hover{background:color-mix(in srgb,var(--ink) 6%,transparent);color:var(--ink)}
 nav.main a[data-mega]::after{content:"▾";margin-left:5px;font-size:10px;opacity:.5}
 .hd .right{display:flex;align-items:center;gap:10px}
-.pill{border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;
+.pill{border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:13px;
   font-weight:600;color:var(--ink-2);background:var(--card);cursor:pointer}
+.ic-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--line);
+  background:var(--card);display:grid;place-items:center;font-size:15px;
+  color:var(--ink-2);cursor:pointer}
+.ic-btn:hover{color:var(--ink);border-color:var(--accent)}
+.btn.thin{padding:7px 14px;border-radius:9px;font-weight:700}
+/* кольцо = остаток токенов: полный круг — полный баланс, тает по мере трат */
+.acct{--left:.62;position:relative;width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;cursor:pointer;flex:none;
+  background:conic-gradient(var(--accent) calc(var(--left)*360deg),
+    color-mix(in srgb,var(--ink) 14%,transparent) 0)}
+.acct .ava{width:28px;height:28px;border-radius:50%;background:var(--ink);
+  color:var(--bg);display:grid;place-items:center;font-size:12px;font-weight:800}
 .btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;
   padding:9px 16px;font-weight:750;font-size:14px;cursor:pointer;font-family:inherit}
 .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
 
-.promo{background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;
-  padding:8px 0}
+.promo{background:var(--ink);color:var(--bg);font-size:12px;font-weight:600;
+  padding:5px 0;line-height:1.3}
 .promo .wrap{display:flex;align-items:center;gap:9px;flex-wrap:wrap;
   justify-content:center;text-align:center}
 .promo b{color:var(--accent);font-weight:800}
-.promo-cta{border:1px solid rgba(255,255,255,.3);border-radius:999px;
-  padding:3px 11px;font-weight:700;cursor:pointer}
+.promo-cta{border:1px solid rgba(255,255,255,.3);border-radius:7px;
+  padding:2px 9px;font-weight:700;cursor:pointer}
 .promo-cta:hover{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 header{top:0}
 .subnav{display:flex;gap:6px;overflow-x:auto;padding:9px 20px 10px;
   border-top:1px solid var(--line);scrollbar-width:none}
 .subnav::-webkit-scrollbar{display:none}
 .sn{white-space:nowrap;border:1px solid var(--line);background:var(--card);
-  border-radius:999px;padding:6px 13px;font-size:13px;font-weight:650;
+  border-radius:9px;padding:6px 12px;font-size:13px;font-weight:650;
   color:var(--ink-2);cursor:pointer}
 .sn:hover{border-color:var(--accent);color:var(--ink)}
 .sn.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -189,7 +204,7 @@ header{top:0}
   resize:vertical}
 .panel textarea{min-height:104px}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--line);background:var(--bg);border-radius:999px;
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:8px;
   padding:6px 11px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--ink-2)}
 .chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .panel .go{width:100%;margin-top:16px;padding:13px}
@@ -241,7 +256,7 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
   color:var(--accent-ink);display:grid;place-items:center;font-size:24px;
   box-shadow:0 6px 22px rgba(196,240,0,.5);border:4px solid var(--bg)}
 .langwrap{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);
-  background:var(--card);border-radius:999px;padding:5px 12px 5px 10px}
+  background:var(--card);border-radius:9px;padding:5px 10px 5px 9px}
 .langwrap .globe{font-size:15px;line-height:1}
 .lang{font-family:inherit;font-weight:750;font-size:13.5px;color:var(--ink);
   background:transparent;border:0;outline:0;cursor:pointer;
@@ -265,7 +280,7 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
 
 <header>
   <div class="wrap hd">
-    <div class="logo"><b>ТАТУ ТУТ</b> <i>studio</i></div>
+    <a class="logo"><span class="mark">✳</span><b data-i="brand">TATTOO TUT</b></a>
     <nav class="main">
       <a data-mega="sketch">Эскиз</a>
       <a data-mega="body">На теле</a>
@@ -281,9 +296,10 @@ footer{border-top:1px solid var(--line);margin-top:44px;padding:22px 0 60px;
         <option value="pl">PL</option><option value="cs">CS</option>
         <option value="nl">NL</option><option value="pt">PT</option>
       </select></span>
-      <span class="pill" id="theme">◐</span>
-      <span class="pill" data-i="credits">240 credits</span>
-      <button class="btn ghost" data-i="signin">Sign in</button>
+      <span class="ic-btn" id="theme">◐</span>
+      <a class="ic-btn" title="Instagram">◎</a>
+      <button class="btn ghost thin" data-i="signin">Sign in</button>
+      <span class="acct" id="acct" title="240 / 400"><span class="ava">N</span></span>
     </div>
   </div>
 
@@ -533,7 +549,7 @@ const I18N={
    tools:"Инструменты",tools_sub:"Всё, что съедает вечера — эскизы, трафареты, примерки, ролики.",
    what:"Что делаем?",what_sub:"Выбери — и сразу попадёшь в рабочее окно",
    signin:"Войти",credits:"240 кредитов",tab_home:"Главная",tab_apps:"Аппы",
-   tab_lib:"Работы",tab_me:"Профиль"},
+   tab_lib:"Работы",tab_me:"Профиль",brand:"ТАТУ ТУТ"},
  es:{h1:"El estudio del tatuador.<br>Todo, en tu navegador.",
    sub:"Boceto, plantilla, prueba en el cuerpo, giro 3D y animación — en una sola ventana.",
    create:"Crear",whats_new:"Novedades",weekly:"cada semana",tools:"Herramientas",
