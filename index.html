@@ -563,6 +563,50 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   50%{transform:translateY(46px);opacity:1}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ── ДО/ПОСЛЕ: шторка эскиз → трансфер ────────────────────
+   Заказ владельца 02.08: «издалека эскиз — и вот так перелистывается —
+   и сразу какой там трансфер, по нему как ползунок». Картинки РЕАЛЬНЫЕ,
+   из наших работ; скриншоты переписки не берём никогда. */
+/* width:100% обязателен: все дети абсолютные, своей ширины у блока нет,
+   и aspect-ratio не от чего считать — ползунок делил на ноль и давал NaN */
+.ba{position:relative;width:100%;height:100%;border-radius:var(--r);
+  overflow:hidden;cursor:ew-resize;background:#fff;touch-action:none;
+  user-select:none}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;pointer-events:none}
+.ba .after{clip-path:inset(0 0 0 var(--x,50%))}
+.ba .bar{position:absolute;top:0;bottom:0;left:var(--x,50%);width:2px;
+  background:var(--lime);box-shadow:0 0 0 1px rgba(6,10,7,.25);pointer-events:none}
+.ba .knob{position:absolute;top:50%;left:var(--x,50%);width:34px;height:34px;
+  margin:-17px 0 0 -17px;border-radius:50%;background:var(--lime);
+  display:grid;place-items:center;font-size:13px;color:#0b1208;font-weight:700;
+  box-shadow:0 2px 10px rgba(6,10,7,.35);pointer-events:none}
+.ba .tagL,.ba .tagR{position:absolute;top:9px;font:700 9.5px/1 'Inter',sans-serif;
+  letter-spacing:.09em;padding:4px 7px;border-radius:5px;pointer-events:none;
+  background:rgba(6,10,7,.6);color:#f2f0e6;backdrop-filter:blur(6px)}
+.ba .tagL{left:9px} .ba .tagR{right:9px}
+
+/* плитки выбора стиля трансфера: превью само перелистывается */
+.styles{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
+.st{border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;
+  cursor:pointer;background:var(--card);transition:.16s;text-align:left;
+  position:relative}
+.st:hover{border-color:var(--ink-3);transform:translateY(-2px);box-shadow:var(--sh-2)}
+.st.on{border-color:var(--ink);box-shadow:var(--sh-2)}
+.st .prev{position:relative;aspect-ratio:1;overflow:hidden;background:#fff}
+.st .prev img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.st .prev .b{animation:sweepBA 4.2s ease-in-out infinite}
+.st:hover .prev .b{animation-duration:2.2s}
+@keyframes sweepBA{0%,100%{clip-path:inset(0 0 0 88%)}50%{clip-path:inset(0 0 0 12%)}}
+.st .lb{padding:9px 10px 11px}
+.st .lb b{display:block;font-size:12.5px;font-weight:600}
+.st .lb span{display:block;font-size:11px;color:var(--ink-2);line-height:1.35;
+  margin-top:2px}
+.st .on-dot{position:absolute;right:7px;top:7px;width:18px;height:18px;
+  border-radius:50%;background:var(--lime);color:#0b1208;display:none;
+  place-items:center;font-size:11px;font-weight:800;z-index:3}
+.st.on .on-dot{display:grid}
+
 /* ── ЕДИНАЯ ПОЛОСА ВОЗВРАТА (есть на КАЖДОМ экране) ──────
    Липкая: на длинном экране выход не должен уезжать вверх. */
 .scrbar,.wkbar{position:sticky;top:var(--nav);z-index:55;
@@ -1418,11 +1462,11 @@ const WORK = {
             {t:'chips',l:'Outside the area',v:['keep it exactly','let it blend']}],
     cta:'Change the area', note:'Only what you painted moves. The rest of the sketch is untouched.',
     after:['stencil','tryon','animate','animsketch','link']},
-  stencil:{stage:{k:'img',ar:'3/4'},
+  stencil:{stage:{k:'ba'},
     fields:[{t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'PNG or JPG up to 20 MB'},
-            {t:'chips',l:'Line weight',v:['thin','medium','heavy']},
-            {t:'chips',l:'Shading',v:['outline only','with guides','full grey map']}],
-    cta:'Make the stencil', note:'Comes out print-ready at 1:1',
+            {t:'styles',l:'Transfer style'},
+            {t:'chips',l:'Line weight',v:['thin','medium','heavy']}],
+    cta:'Make the transfer', note:'Comes out print-ready at 1:1',
     after:['bigprint','tiling','tryon']},
   bigprint:{stage:{k:'sheets'},
     fields:[{t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'The bigger the file the better'},
@@ -1569,6 +1613,24 @@ ru:{
  ip_s:'Закрась лицо, руку, один цветок — и скажи, что с этим сделать. Остальной эскиз останется как был.',
  ip_brush:'Кисть', ip_erase:'Стереть', ip_size:'Кисть',
  ip_undo:'Отменить', ip_clear:'Очистить',
+ fl_the_design:'Рисунок', fl_transfer_style:'Стиль трансфера',
+ fl_line_weight:'Толщина линии', fl_what_to_draw:'Что нарисовать',
+ fl_style:'Стиль', fl_where_on_the_body:'Куда на тело', fl_size:'Размер',
+ fl_the_sketch:'Эскиз', fl_the_shot:'Фото', fl_the_photo:'Фото',
+ fl_what_to_change:'Что поменять', fl_how_far_to_go:'Насколько менять',
+ fl_outside_the_area:'За пределами области', fl_light:'Свет',
+ fl_relief:'Рельеф', fl_gloss:'Блеск', fl_strength:'Сила', fl_fix:'Что чинить',
+ fl_your_sketch:'Твой эскиз', fl_the_hook:'Хук', fl_format:'Формат',
+ fl_length:'Длительность', fl_placement:'Посадка', fl_body_zone:'Зона тела',
+ fl_photo_of_the_body:'Фото тела', fl_design_or_photo:'Рисунок или фото',
+ fl_what_to_do_with_the_painted_area:'Что сделать с закрашенным',
+ fl_size_in_centimetres:'Размер в сантиметрах', fl_volume:'Объём',
+ fl_pull_out:'Что вытащить', fl_clean_up:'Чистка',
+ ba_before:'ЭСКИЗ', ba_after:'ТРАНСФЕР',
+ ss_contour:'Контур', ssh_contour:'Чистая линия под перевод',
+ ss_shaded:'С тенями', ssh_shaded:'Линия плюс карта серого',
+ ss_dotwork:'Дотворк', ssh_dotwork:'Точки не съедаются, зерно живое',
+ ss_skin:'Под кожу', ssh_skin:'Поправка на рельеф и натяжение',
  rl_t:'Веди пальцем по эскизу',
  rl_s:'Свет едет за тобой. Толщина штриха становится рельефом.',
  rl_save:'Сохранить кадр', rl_nogl:'В этом браузере выключен WebGL',
@@ -3257,6 +3319,59 @@ function initInpaint(){
   addEventListener('resize', fit, {passive:true});
 }
 
+/* ═══════════════ ТРАНСФЕР: ВЫБОР СТИЛЯ ═══════════════
+   Владелец 02.08: человек выбирает вид трансфера ПРЕВЬЮШКАМИ, а не словами.
+   Каждая плитка сама перелистывается эскиз↔трансфер, а в большом окне
+   ползунок водится пальцем. Картинки — наши настоящие работы. */
+const STENCIL_STYLES = [
+  {id:'contour', n:'Контур',       h:'Чистая линия под перевод',
+   a:'img/bull_sketch.jpg',  b:'img/bull_transfer.jpg'},
+  {id:'shaded',  n:'С тенями',     h:'Линия плюс карта серого',
+   a:'img/demo_sketch.jpg',  b:'img/demo_transfer.jpg'},
+  {id:'dotwork', n:'Дотворк',      h:'Точки не съедаются, зерно живое',
+   a:'img/bull_transfer.jpg', b:'img/bull_sketch.jpg'},
+  {id:'skin',    n:'Под кожу',     h:'Поправка на рельеф и натяжение',
+   a:'img/demo_transfer.jpg', b:'img/demo_tryon.jpg'},
+];
+let STENCIL_STYLE = 'contour';
+
+/* Шторка «до/после». Возвращает готовую разметку; водится мышью и пальцем. */
+function baHTML(a, b, la, lb, id){
+  return `<div class="ba" id="${id}" style="--x:50%">
+    <img src="${a}" alt="">
+    <img class="after" src="${b}" alt="">
+    <div class="bar"></div><div class="knob">↔</div>
+    <span class="tagL">${la}</span><span class="tagR">${lb}</span></div>`;
+}
+function baBind(id){
+  const el=$(id); if(!el) return;
+  const set=e=>{ const r=el.getBoundingClientRect();
+    const x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
+    el.style.setProperty('--x',(x*100).toFixed(1)+'%'); };
+  let on=false;
+  el.onpointerdown=e=>{on=true; el.setPointerCapture(e.pointerId); set(e);};
+  el.onpointermove=e=>{ if(on) set(e); };
+  el.onpointerup=el.onpointercancel=()=>{on=false;};
+}
+function stylesHTML(){
+  return `<div class="styles">` + STENCIL_STYLES.map(s=>`
+    <div class="st${STENCIL_STYLE===s.id?' on':''}" onclick="pickStencilStyle('${s.id}')">
+      <span class="on-dot">✓</span>
+      <div class="prev"><img src="${s.a}" alt=""><img class="b" src="${s.b}" alt=""></div>
+      <div class="lb"><b>${T('ss_'+s.id, s.n)}</b><span>${T('ssh_'+s.id, s.h)}</span></div>
+    </div>`).join('') + `</div>`;
+}
+window.pickStencilStyle = id => {
+  STENCIL_STYLE = id;
+  document.querySelectorAll('#wkPanel .st').forEach((el,i)=>
+    el.classList.toggle('on', STENCIL_STYLES[i].id===id));
+  const s = STENCIL_STYLES.find(x=>x.id===id) || STENCIL_STYLES[0];
+  const stage=$('wkStage');
+  if(stage){ stage.innerHTML = baHTML(s.a, s.b, T('ba_before','SKETCH'),
+                                      T('ba_after','TRANSFER'), 'baMain');
+             baBind('baMain'); }
+};
+
 /* ═══════════════ СВЕТ ВОКРУГ ЭСКИЗА ═══════════════
    Порт relight_engine.py (самотест 6/6) в WebGL. Нормали считаются ОДИН раз
    при загрузке, каждый кадр — только скалярные произведения в шейдере.
@@ -3522,6 +3637,7 @@ const STAGE_BOX = {
   vid:'aspect-ratio:9/16;max-width:330px',   sheets:'aspect-ratio:4/3;max-width:100%',
   link:'aspect-ratio:4/3;max-width:100%',    '3d':'aspect-ratio:1;max-width:470px',
   inpaint:'aspect-ratio:3/4;max-width:460px',
+  ba:'aspect-ratio:3/4;max-width:460px',
   relight:'aspect-ratio:1;max-width:520px',
 };
 const boxFor = w => w.stage.k==='img'
@@ -3552,6 +3668,8 @@ const STAGES = {
   /* НАСТОЯЩАЯ функция, а не заглушка: толщина штриха → карта высот →
      псевдо-нормали → Ламберт с бликом. Ноль вызовов движка, ноль долларов,
      60 fps. Математика идентична relight_engine.py (самотест 6/6). */
+  ba: ()=>{ const st=STENCIL_STYLES.find(x=>x.id===STENCIL_STYLE)||STENCIL_STYLES[0];
+      return baHTML(st.a, st.b, T('ba_before','SKETCH'), T('ba_after','TRANSFER'), 'baMain'); },
   relight: ()=>`<canvas id="rlCanvas" style="position:absolute;inset:0;width:100%;
       height:100%;display:block;touch-action:none;cursor:grab"></canvas>
     <div class="empty" id="rlHint" style="z-index:5;pointer-events:none">
@@ -3576,8 +3694,10 @@ const IP_TOOLS = () => `<div class="iptools">
   <span class="cost-note" id="ipNote" style="flex-basis:100%;text-align:left"></span>
 </div>`;
 
+/* подписи полей рендерились сырым английским при любом языке */
+const flab = t => T('fl_'+String(t).toLowerCase().replace(/[^a-z]+/g,'_'), t);
 function field(f,i){
-  const l=`<label>${f.l}</label>`;
+  const l=`<label>${flab(f.l)}</label>`;
   if(f.t==='text' && f.inp) return `<div class="fld">${l}
     <input type="text" placeholder="${f.ph}"></div>`;
   if(f.t==='text') return `<div class="fld">${l}<textarea placeholder="${f.ph}"></textarea></div>`;
@@ -3589,6 +3709,7 @@ function field(f,i){
   if(f.t==='pm') return `<div class="fld">${l}<div class="presetmini">${
     f.v.map(([n,h],j)=>`<div class="pm${j===0?' on':''}" onclick="pickChip(this)">
       <div class="n">${n}</div><div class="h">${h}</div></div>`).join('')}</div></div>`;
+  if(f.t==='styles') return `<div class="fld">${l}${stylesHTML()}</div>`;
   if(f.t==='rng') return `<div class="fld">${l}<input type="range" id="${f.id}"
     min="${f.min}" max="${f.max}" value="${f.val}" style="width:100%"></div>`;
   if(f.t==='drop') return `<div class="fld">${l}<div class="drop">
@@ -3630,6 +3751,7 @@ function buildWork(id){
   };
   const ip=$('inpaintCanvas');
   if(ip) initInpaint();
+  if($('baMain')) baBind('baMain');
   /* Свет считается у нас, поэтому кнопка не «отправляет», а крутит.
      Кредиты за него не берём: кадр стоит ноль. */
   if($('rlCanvas')){
