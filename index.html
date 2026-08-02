@@ -3127,11 +3127,18 @@ function initInpaint(){
     if(hint) hint.style.display = IP.strokes.length ? 'none' : 'grid';
     measure();
   }
-  /* Замер маски по ответу движка 02.08: порог отказа 1.2% меньшей стороны
-     И меньшая сторона bbox не тоньше 24px В РАЗРЕШЕНИИ, где считает модель.
-     Наш прежний порог 0.5% был ошибкой: кисть 16px на холсте 2048 после
-     приведения к 1024 даёт 8px и исчезает. */
+  /* ДВЕ РАЗНЫЕ ВЕЛИЧИНЫ, их нельзя смешивать (поправка движка 02.08).
+     1) ПОЛ КИСТИ — линейная мера, 1.2% меньшей стороны. Это ограничение
+        интерфейса: не даём рисовать штрих, который исчезнет в латенте.
+        Лечится адаптацией ввода, а не отказом.
+     2) ОТКАЗ — мера площади: coverage < 0.5% кадра ИЛИ меньшая сторона bbox
+        < 24px В РАЗРЕШЕНИИ МОДЕЛИ. Отказ только для физически невозможного.
+     Я эти две склеил в одну и отказывал при 1.2% площади: точка на глазу,
+     дата, мелкий элемент — это 0.5-1% площади, и человек получал
+     «закрась пошире» там, где всё нормально. */
   const MODEL_SIDE = 1024;
+  const BRUSH_FLOOR = () => Math.max(8,
+    Math.ceil(0.012 * Math.min(cv.width, cv.height) / devicePixelRatio));
   function measure(){
     const d = ctx.getImageData(0,0,cv.width,cv.height).data;
     let minX=cv.width, minY=cv.height, maxX=-1, maxY=-1, painted=0;
@@ -3145,35 +3152,53 @@ function initInpaint(){
     IP.stats = {coverage:cov, bbox: maxX<0?null:{x:minX,y:minY,w:maxX-minX,h:maxY-minY},
                 min_side_px: Math.round(bboxMin)};
     const btn=document.querySelector('#wkPanel .btn.wide'), note=$('ipNote');
-    const tooSmall = !painted || cov < 0.012 || bboxMin < 24;
+    /* отказ только по площади и по физическому пределу модели */
+    const tooSmall = !painted || cov < 0.005 || bboxMin < 24;
     const tooBig   = cov > 0.55;
     if(btn){ btn.disabled = tooSmall || tooBig; btn.style.opacity = btn.disabled?.45:''; }
     if(note) note.textContent = !painted ? T('ip_none','Paint the area first')
-      : tooSmall ? T('ip_small','Painted area is too small to redraw cleanly. Widen the brush or cover more.')
+      : tooSmall ? T('ip_small','Too thin to redraw cleanly. Widen the brush or cover a bit more.')
       : tooBig   ? T('ip_big','More than half the sketch is painted. Better to make a new one.')
       : T('ip_ok','Painted {p}% of the sheet').replace('{p}',(cov*100).toFixed(1));
   }
-  /* Выгрузка движку. Картинка и маска ОДНИМ кодом из одного canvas и с
-     округлением до кратности 64 — тогда «маска уехала на пиксель» невозможна
-     по построению. conv:'alpha' для OpenAI (дыра в альфе), 'white' для SD. */
-  window.ipPayload = (conv) => {
-    const q = n => Math.max(64, Math.round(n/64)*64);
-    const W=q(cv.width), H=q(cv.height);
-    const out=document.createElement('canvas'); out.width=W; out.height=H;
-    const o=out.getContext('2d'); o.drawImage(cv,0,0,W,H);
-    const im=o.getImageData(0,0,W,H), p=im.data;
+  /* МАСКА НА СЕРВЕР НЕ УХОДИТ. Раз масочных моделей в каталоге нет, путь
+     кроп-композитный: движку летят только КРОП и промпт, а маска, растушёвка
+     и сборка живут здесь. Маска остаётся локальной — ipMask() для композита. */
+  window.ipMask = (conv) => {
+    const out=document.createElement('canvas'); out.width=cv.width; out.height=cv.height;
+    const o=out.getContext('2d'); o.drawImage(cv,0,0);
+    const im=o.getImageData(0,0,out.width,out.height), p=im.data;
     for(let i=0;i<p.length;i+=4){
       const on = p[i+3]>8;
       if(conv==='alpha'){ p[i]=p[i+1]=p[i+2]=255; p[i+3]= on?0:255; }
       else { const v = on?255:0; p[i]=p[i+1]=p[i+2]=v; p[i+3]=255; }
     }
-    o.putImageData(im,0,0);
-    return {op:'inpaint', width:W, height:H, mask:out.toDataURL('image/png'),
-            mask_spec:{format:'png', convention: conv==='alpha'?'alpha-hole':'white-edit',
-                       aligned_to:'image', feather:0},
-            coverage:IP.stats?.coverage ?? 0, bbox:IP.stats?.bbox ?? null,
-            min_side_px:IP.stats?.min_side_px ?? 0,
-            brush:{px:IP.size, strokes:IP.strokes.length}};
+    o.putImageData(im,0,0); return out;
+  };
+  /* Запрос движку: кроп с запасом контекста + промпт. Кроп РАСШИРЯЕТСЯ до
+     30% кадра — это добор контекста, а не повод отказать: маска всё равно
+     ограничит, что вклеится обратно. Кратность 64 живёт только здесь, на
+     пути запроса; композит потом собирается против ОРИГИНАЛА мастера. */
+  window.ipPayload = () => {
+    const b = IP.stats?.bbox; if(!b) return null;
+    const q = n => Math.max(64, Math.round(n/64)*64);
+    const minSide = 0.30 * Math.min(cv.width, cv.height);   // добор контекста
+    const pad = Math.max(0.20 * Math.max(b.w,b.h), (minSide-Math.max(b.w,b.h))/2, 0);
+    const x = Math.max(0, b.x - pad), y = Math.max(0, b.y - pad);
+    const w = Math.min(cv.width - x,  b.w + pad*2);
+    const h = Math.min(cv.height - y, b.h + pad*2);
+    const scale = MODEL_SIDE / Math.min(cv.width, cv.height);
+    return {
+      op:'inpaint_crop',
+      crop:{x:Math.round(x), y:Math.round(y), w:Math.round(w), h:Math.round(h)},
+      send:{width:q(w), height:q(h)},              // что реально уедет движку
+      source:{width:cv.width, height:cv.height},   // база композита = оригинал
+      model_scale:scale,                           // чтобы гейт считал в РАЗРЕШЕНИИ МОДЕЛИ
+      min_side_px_model: IP.stats.min_side_px,     // уже приведён к модельному
+      coverage: IP.stats.coverage,
+      brush:{px:IP.size, floor_px:BRUSH_FLOOR(), strokes:IP.strokes.length},
+      note:'маска на сервер не уходит; композит и растушёвка на клиенте',
+    };
   };
   cv.onpointerdown=e=>{ cv.setPointerCapture(e.pointerId); IP.on=true;
     IP.cur={mode:IP.mode, size:IP.size, pts:[pt(e)]}; IP.strokes.push(IP.cur); redraw(); };
@@ -3184,7 +3209,12 @@ function initInpaint(){
   window.ipMode=(m,el)=>{ IP.mode=m;
     [...el.parentNode.querySelectorAll('.ipbtn')].forEach(b=>b.classList.remove('on'));
     el.classList.add('on'); };
-  window.ipSize=v=>{ IP.size=+v; };
+  /* Пол кисти — адаптация ввода, не отказ: тоньше физического предела просто
+     не даём выставить, вместо того чтобы ругаться уже после мазка. */
+  window.ipSize=v=>{ IP.size=Math.max(BRUSH_FLOOR(), +v); };
+  const sl=$('ipSizeInput');
+  if(sl){ sl.min=BRUSH_FLOOR(); if(+sl.value<BRUSH_FLOOR()) sl.value=BRUSH_FLOOR();
+          IP.size=+sl.value; }
   IP.strokes=[]; fit();
   addEventListener('resize', fit, {passive:true});
 }
@@ -3353,7 +3383,7 @@ const IP_TOOLS = () => `<div class="iptools">
   <span class="ipbtn on" onclick="ipMode('brush',this)" title="${T('ip_brush','Brush')}">✏️</span>
   <span class="ipbtn" onclick="ipMode('erase',this)" title="${T('ip_erase','Eraser')}">◻</span>
   <span class="brush"><span>${T('ip_size','Brush')}</span>
-    <input type="range" min="8" max="90" value="34" oninput="ipSize(this.value)"></span>
+    <input type="range" min="8" max="90" value="34" id="ipSizeInput" oninput="ipSize(this.value)"></span>
   <span class="ipbtn" onclick="ipUndo()" title="${T('ip_undo','Undo')}">↺</span>
   <span class="ipbtn" onclick="ipClear()" title="${T('ip_clear','Clear')}">✕</span>
   <span class="cost-note" id="ipNote" style="flex-basis:100%;text-align:left"></span>
