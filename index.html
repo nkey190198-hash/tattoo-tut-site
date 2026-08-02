@@ -589,6 +589,18 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   letter-spacing:.09em;padding:4px 7px;border-radius:5px;pointer-events:none;
   background:rgba(6,10,7,.6);color:#f2f0e6;backdrop-filter:blur(6px)}
 .ba .tagL{left:9px} .ba .tagR{right:9px}
+/* Шторка ВНУТРИ плитки: touch-action:none у .ba съедал вертикальный скролл —
+   палец над этой плиткой не листал страницу. pan-y возвращает скролл,
+   горизонтальный жест по-прежнему уходит в ползунок. Мелочи на 152px
+   тоже жмём: ручка меньше, подписи мельче. */
+.tile .ba{touch-action:pan-y;border-radius:0}
+.tile .ba .knob{width:26px;height:26px;margin:-13px 0 0 -13px;font-size:11px}
+/* Подписи уводим ВНИЗ: наверху плитки уже сидят ярлык и ценник (z-index 3),
+   и правая подпись «TRANSFER» пряталась под «1 cr» — на экране читалось
+   обрезанное «TRAN». Внизу над градиентом названия места хватает обеим. */
+.tile .ba .tagL,.tile .ba .tagR{font-size:8px;padding:3px 5px;
+  top:auto;bottom:34px}
+.tile .ba .tagL{left:7px} .tile .ba .tagR{right:7px}
 
 /* плитки выбора стиля трансфера: превью само перелистывается */
 .styles{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
@@ -1349,8 +1361,8 @@ const FN = [
   {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',  img:'img/demo_sketch.jpg', n:'Create a sketch',      h:'Words in, finished design out'},
   {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame',  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
   {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
-  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', img:'img/bull_transfer.jpg', n:'Stencil',              h:'Clean lines ready to transfer'},
-  {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', img:'img/bull_sketch.jpg', n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
+  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', ba:{a:'img/bull_sketch.jpg',b:'img/bull_transfer.jpg'}, n:'Stencil',              h:'Clean lines ready to transfer'},
+  {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', img:'img/demo_transfer.jpg', n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
   {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',   img:'img/demo_tryon.jpg', n:'Try it on the body',   h:'See it on the arm, back, ribs'},
   {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
@@ -3021,14 +3033,22 @@ function renderFilters(){
 
 function renderTiles(){
   const list = FILTER==='all' ? FN : FN.filter(f=>f.cat===FILTER);
+  /* Плитка с парой ba:{a,b} показывает живую шторку до/после прямо в сетке —
+     не картинку-обещание, а нашу работу и её трансфер, которые человек
+     сам перелистывает пальцем. Своя .ba, не сторонний слайдер: у пакета
+     hookcards он строит собственную карточку и теряет T() — на десяти
+     языках это регресс. Из пакета берём только то, чего у нас нет. */
   $('tiles').innerHTML = list.map(f=>`
     <article class="tile" onclick="openWork('${f.id}')">
-      ${f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
+      ${f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
+                      T('ba_after','TRANSFER'), 'batile_'+f.id)
+             : f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
       ${f.tag?`<span class="corner"><span class="tag">${f.tag}</span></span>`:''}
       <span class="cost">${f.cost?f.cost+' '+T('cr','cr'):T('free','free')}</span>
       <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div>
         <div class="h">${T('h_'+f.id,f.h)}</div></div>
     </article>`).join('');
+  list.forEach(f => { if (f.ba) baBind('batile_'+f.id, true); });
   $('fcount').textContent = `${list.length} / ${FN.length}`;
 }
 window.setFilter = c => { FILTER = c; renderFilters(); renderTiles(); };
@@ -3437,15 +3457,22 @@ function baHTML(a, b, la, lb, id){
     <div class="bar"></div><div class="knob">↔</div>
     <span class="tagL">${la}</span><span class="tagR">${lb}</span></div>`;
 }
-function baBind(id){
+/* inTile: шторка живёт внутри кликабельной плитки. Тогда ТЯНУЛ и ТАПНУЛ —
+   разные намерения: потянул ползунок → плитку не открываем, просто тапнул →
+   открываем как обычно. Без этого любое движение ползунка выбрасывало бы
+   человека в окно работы. */
+function baBind(id, inTile){
   const el=$(id); if(!el) return;
   const set=e=>{ const r=el.getBoundingClientRect();
     const x=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width));
     el.style.setProperty('--x',(x*100).toFixed(1)+'%'); };
-  let on=false;
-  el.onpointerdown=e=>{on=true; el.setPointerCapture(e.pointerId); set(e);};
-  el.onpointermove=e=>{ if(on) set(e); };
+  let on=false, moved=false, x0=0;
+  el.onpointerdown=e=>{on=true; moved=false; x0=e.clientX;
+    el.setPointerCapture(e.pointerId); set(e);};
+  el.onpointermove=e=>{ if(!on) return;
+    if(Math.abs(e.clientX-x0)>4) moved=true; set(e); };
   el.onpointerup=el.onpointercancel=()=>{on=false;};
+  if(inTile) el.onclick=e=>{ if(moved){ e.stopPropagation(); e.preventDefault(); } };
 }
 function stylesHTML(){
   return `<div class="styles">` + STENCIL_STYLES.map(s=>`
