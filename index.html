@@ -626,6 +626,15 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 .tile .vd video{opacity:0;transition:opacity .4s ease}
 .tile .vd.on video{opacity:1}
 
+/* ── КАРУСЕЛЬ: одна плитка — много разных работ ────────────
+   Заказ владельца 02.08: «медленно делать слайды влево, там разные стили
+   и разные картинки, чтобы было понятно, что можно разные генерить».
+   Лента едет шагами по кадру; вне экрана таймер стоит. */
+.tile .car{position:absolute;inset:0;overflow:hidden;z-index:1}
+.tile .car .trk{position:absolute;inset:0;display:flex;
+  transition:transform .9s cubic-bezier(.32,.72,0,1)}
+.tile .car img{flex:0 0 100%;width:100%;height:100%;object-fit:cover;display:block}
+
 /* плитки выбора стиля трансфера: превью само перелистывается */
 .styles{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
 .st{border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;
@@ -1382,9 +1391,9 @@ const fx = k => FX[k] || '';
 
 /* инструменты: cat — для фильтра, cost — в кредитах */
 const FN = [
-  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',  img:'img/angel.jpg', n:'Create a sketch',      h:'Words in, finished design out'},
+  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob', car:['img/angel.jpg','img/st_space.jpg','img/st_leo.jpg','img/st_japan.jpg','img/st_lada.jpg','img/st_george.jpg','img/st_queen.jpg'], n:'Create a sketch',      h:'Words in, finished design out'},
   {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame', xf:{a:'img/skull_body.jpg',b:'img/skull_extract.jpg'},  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
-  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes', img:'img/demo_sketch.jpg',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
+  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes', xf:{a:'img/edit_a.jpg',b:'img/edit_b.jpg'},  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
   {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', ba:{a:'img/bull_sketch.jpg',b:'img/bull_transfer.jpg'}, n:'Stencil',              h:'Clean lines ready to transfer'},
   {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', img:'img/demo_transfer.jpg', n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
   {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',   img:'img/demo_tryon.jpg', n:'Try it on the body',   h:'See it on the arm, back, ribs'},
@@ -1394,7 +1403,7 @@ const FN = [
   {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep', img:'img/borzoi.jpg',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
   {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake', vd:{src:'img/vid_animate.mp4',poster:'img/vid_animate.jpg'},  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
   {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring', vd:{src:'img/vid_animsketch.mp4',poster:'img/vid_animsketch.jpg'},   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
-  {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo',   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
+  {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo', xf:{a:'img/ret_a.jpg',b:'img/ret_b.jpg'},   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
   {id:'tiling',  e:'🧩', cat:'print',  cost:0,  fxk:'pages',  n:'A4 tiling',            h:'Any size laid out across sheets'},
   {id:'palette', e:'🎨', cat:'light',  cost:0,  fxk:'swatch', n:'Palette',              h:'Pull the colours out of a design'},
 ];
@@ -3064,7 +3073,8 @@ function renderTiles(){
      языках это регресс. Из пакета берём только то, чего у нас нет. */
   $('tiles').innerHTML = list.map(f=>`
     <article class="tile" onclick="openWork('${f.id}')">
-      ${f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
+      ${f.car ? carHTML(f.car, 'cartile_'+f.id)
+             : f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
                       T('ba_after','TRANSFER'), 'batile_'+f.id)
              : f.vd ? vidHTML(f.vd.src, f.vd.poster, 'vdtile_'+f.id)
              : f.xf ? `<div class="xf"><img src="${f.xf.a}" alt="" loading="lazy">
@@ -3075,8 +3085,9 @@ function renderTiles(){
       <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div>
         <div class="h">${T('h_'+f.id,f.h)}</div></div>
     </article>`).join('');
-  list.forEach(f => { if (f.ba) baBind('batile_'+f.id, true);
-                      if (f.vd) vidBind('vdtile_'+f.id); });
+  list.forEach(f => { if (f.ba)  baBind('batile_'+f.id, true);
+                      if (f.vd)  vidBind('vdtile_'+f.id);
+                      if (f.car) carBind('cartile_'+f.id); });
   $('fcount').textContent = `${list.length} / ${FN.length}`;
 }
 window.setFilter = c => { FILTER = c; renderFilters(); renderTiles(); };
@@ -3485,6 +3496,30 @@ function baHTML(a, b, la, lb, id){
     <div class="bar"></div><div class="knob">↔</div>
     <span class="tagL">${la}</span><span class="tagR">${lb}</span></div>`;
 }
+/* Карусель работ в плитке. Кадры едут влево по одному; за экраном таймер
+   выключен, иначе телефон крутит невидимую ленту и жжёт батарею.
+   prefers-reduced-motion → стоит первый кадр, без движения. */
+function carHTML(list, id){
+  return `<div class="car" id="${id}"><div class="trk">` +
+    list.map(s=>`<img src="${s}" alt="" loading="lazy">`).join('') +
+    `</div></div>`;
+}
+function carBind(id){
+  const w=$(id); if(!w) return;
+  const trk=w.querySelector('.trk'); if(!trk) return;
+  const n=trk.children.length; if(n<2) return;
+  let reduced=false;
+  try{ reduced=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  if(reduced) return;
+  let i=0, t=null;
+  const step=()=>{ i=(i+1)%n; trk.style.transform=`translateX(${-i*100}%)`; };
+  const run =()=>{ if(!t) t=setInterval(step, 3600); };
+  const stop=()=>{ if(t){ clearInterval(t); t=null; } };
+  if(!('IntersectionObserver' in window)) { run(); return; }
+  new IntersectionObserver(es=>es.forEach(en=>en.isIntersecting?run():stop()),
+    {rootMargin:'100px',threshold:.25}).observe(w);
+}
+
 /* Видео в плитке. Постер виден сразу, сам файл не грузится, пока плитка
    не попала в кадр; ушла за экран — пауза. Кому движение мешает или у кого
    экономия трафика — остаётся постер, и это ЧЕСТНО: постер снят с того же
