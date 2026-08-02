@@ -563,6 +563,10 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   50%{transform:translateY(46px);opacity:1}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* настоящая работа вместо узора: картинка кроется под подпись */
+.tile .ph,.ncard .ph,.jcard .ph{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block;z-index:1}
+
 /* ── ДО/ПОСЛЕ: шторка эскиз → трансфер ────────────────────
    Заказ владельца 02.08: «издалека эскиз — и вот так перелистывается —
    и сразу какой там трансфер, по нему как ползунок». Картинки РЕАЛЬНЫЕ,
@@ -606,6 +610,37 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   border-radius:50%;background:var(--lime);color:#0b1208;display:none;
   place-items:center;font-size:11px;font-weight:800;z-index:3}
 .st.on .on-dot{display:grid}
+
+/* ── ОПЛАТА: способы Робокассы ───────────────────────────
+   Владелец 02.08: Робокасса — основной способ на сайте, аудитория
+   преимущественно иностранная, цены в долларах, но русская оплата тоже
+   на виду, чтобы человек выбрал удобный. */
+.pay{position:fixed;inset:0;z-index:98;display:none;
+  background:rgba(8,12,9,.5);backdrop-filter:blur(4px)}
+.pay.on{display:grid;place-items:center;padding:18px}
+.pay .box{background:var(--card);border:1px solid var(--line);border-radius:18px;
+  width:min(460px,100%);padding:20px;box-shadow:var(--sh-2);max-height:88vh;overflow:auto}
+.pay h4{font-family:'Oswald',sans-serif;font-size:18px;text-transform:uppercase}
+.pay .sum{display:flex;align-items:baseline;gap:8px;margin:10px 0 4px}
+.pay .sum b{font-family:'Oswald',sans-serif;font-size:34px;line-height:1}
+.pay .sum span{font-size:13px;color:var(--ink-2)}
+.pay .rub{font-size:12px;color:var(--ink-3);margin-bottom:14px}
+.pm-list{display:grid;gap:8px;margin-bottom:14px}
+.pm-row{display:flex;align-items:center;gap:11px;border:1.5px solid var(--line);
+  border-radius:11px;padding:11px 13px;cursor:pointer;background:var(--raise);
+  transition:.14s}
+.pm-row:hover{border-color:var(--ink-3)}
+.pm-row.on{border-color:var(--ink);background:var(--card)}
+.pm-row .ic{width:30px;height:30px;border-radius:8px;flex:none;display:grid;
+  place-items:center;font-size:14px;background:var(--sunk)}
+.pm-row .tx{flex:1;min-width:0}
+.pm-row .tx b{display:block;font-size:13.5px;font-weight:600}
+.pm-row .tx span{display:block;font-size:11.5px;color:var(--ink-2);margin-top:1px}
+.pm-row .rd{width:17px;height:17px;border-radius:50%;border:2px solid var(--line-2);
+  flex:none;display:grid;place-items:center}
+.pm-row.on .rd{border-color:var(--ink)}
+.pm-row.on .rd::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--ink)}
+.pay .fine{font-size:11px;color:var(--ink-3);line-height:1.45;margin-top:10px}
 
 /* ── ЕДИНАЯ ПОЛОСА ВОЗВРАТА (есть на КАЖДОМ экране) ──────
    Липкая: на длинном экране выход не должен уезжать вверх. */
@@ -1261,6 +1296,19 @@ html{scrollbar-gutter:stable}
   </div>
 </div>
 
+
+<!-- ═════════ ОПЛАТА ═════════ -->
+<div class="pay" id="pay" onclick="if(event.target===this)closePay()">
+  <div class="box">
+    <h4 data-i="pay_h">Checkout</h4>
+    <div class="sum"><b id="paySum">$29</b><span data-i="pay_per">per month</span></div>
+    <div class="rub" id="payRub"></div>
+    <div class="pm-list" id="payMethods"></div>
+    <button class="btn wide big" onclick="payGo()"><span data-i="pay_go">Pay</span></button>
+    <div class="fine" data-i="pay_fine">Payments are handled by Robokassa. Founding price stays yours as long as the subscription runs. Cancel any time from the profile.</div>
+  </div>
+</div>
+
 <div class="tabbar">
   <div class="on" onclick="go('home')"><i>⌂</i><span data-i="tab_home">Home</span></div>
   <div onclick="go('journal')"><i>◈</i><span data-i="tab_jrn">News</span></div>
@@ -1298,12 +1346,12 @@ const fx = k => FX[k] || '';
 
 /* инструменты: cat — для фильтра, cost — в кредитах */
 const FN = [
-  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',   n:'Create a sketch',      h:'Words in, finished design out'},
+  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',  img:'img/demo_sketch.jpg', n:'Create a sketch',      h:'Words in, finished design out'},
   {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame',  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
   {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
-  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines',  n:'Stencil',              h:'Clean lines ready to transfer'},
-  {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack',  n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
-  {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',    n:'Try it on the body',   h:'See it on the arm, back, ribs'},
+  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', img:'img/bull_transfer.jpg', n:'Stencil',              h:'Clean lines ready to transfer'},
+  {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', img:'img/bull_sketch.jpg', n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
+  {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',   img:'img/demo_tryon.jpg', n:'Try it on the body',   h:'See it on the arm, back, ribs'},
   {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
   {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
@@ -1351,7 +1399,7 @@ const CUBES = [
 ];
 
 const FEED = [
-  {k:'Interview', badge:'THIS WEEK', fxk:'sweep',
+  {k:'Interview', badge:'THIS WEEK', fxk:'sweep', img:'img/draga-thumb.jpg',
    t:'Draga Pavlik — a line that grows like a plant',
    d:'Denmark, organic fine-line. On deep ecology, figure skating, and why tattooing stays a human-to-human thing.',
    href:'https://nkey190198-hash.github.io/tattoo-tut-waitlist/interviews/draga-pavlik.html'},
@@ -1366,7 +1414,7 @@ const FEED = [
 /* журнал — три полосы, каждая заканчивается инструментом */
 const JOURNAL = [
   {sec:'Interviews', items:[
-    {fxk:'sweep', t:'Draga Pavlik — a line that grows like a plant',
+    {fxk:'sweep', img:'img/draga-thumb.jpg', t:'Draga Pavlik — a line that grows like a plant',
      d:'Organic fine-line out of Denmark. Deep ecology, figure skating, and staying human in the work.',
      hook:'Try the style →', go:'sketch',
      href:'https://nkey190198-hash.github.io/tattoo-tut-waitlist/interviews/draga-pavlik.html'},
@@ -1626,6 +1674,15 @@ ru:{
  fl_what_to_do_with_the_painted_area:'Что сделать с закрашенным',
  fl_size_in_centimetres:'Размер в сантиметрах', fl_volume:'Объём',
  fl_pull_out:'Что вытащить', fl_clean_up:'Чистка',
+ pay_h:'Оплата', pay_per:'в месяц', pay_go:'Оплатить',
+ pay_about:'примерно {r} ₽ по текущему курсу',
+ pay_soon:'Оплата включится на запуске',
+ pay_fine:'Платежи проводит Робокасса. Цена входа остаётся твоей, пока идёт подписка. Отменить можно в любой момент из профиля.',
+ pm_card:'Карта', pmh_card:'Visa · Mastercard · Мир',
+ pm_sbp:'СБП', pmh_sbp:'Мгновенно, по России',
+ pm_wallet:'Кошельки', pmh_wallet:'ЮMoney и другие',
+ pm_crypto:'Криптовалюта', pmh_crypto:'USDT и основные монеты',
+ pm_inst:'Частями', pmh_inst:'Где Робокасса это предлагает',
  ba_before:'ЭСКИЗ', ba_after:'ТРАНСФЕР',
  ss_contour:'Контур', ssh_contour:'Чистая линия под перевод',
  ss_shaded:'С тенями', ssh_shaded:'Линия плюс карта серого',
@@ -2966,7 +3023,7 @@ function renderTiles(){
   const list = FILTER==='all' ? FN : FN.filter(f=>f.cat===FILTER);
   $('tiles').innerHTML = list.map(f=>`
     <article class="tile" onclick="openWork('${f.id}')">
-      ${fx(f.fxk)}
+      ${f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
       ${f.tag?`<span class="corner"><span class="tag">${f.tag}</span></span>`:''}
       <span class="cost">${f.cost?f.cost+' '+T('cr','cr'):T('free','free')}</span>
       <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div>
@@ -3006,7 +3063,7 @@ function renderFeed(){
     const act = f.href ? `onclick="window.open('${f.href}','_blank','noopener')"`
               : f.go ? `onclick="openWork('${f.go}')"` : '';
     return `<article class="ncard" ${act}>
-      <div class="media always">${fx(f.fxk)}
+      <div class="media always">${f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
         <span style="position:absolute;left:9px;top:9px;z-index:3"
           class="tag${f.badge==='SOON'?' q':''}">${f.badge}</span></div>
       <div class="meta"><div class="eyebrow">${T('fk_'+i,f.k)}</div>
@@ -3023,7 +3080,7 @@ function jcards(items){
     const act = it.href ? `onclick="window.open('${it.href}','_blank','noopener')"`
               : it.go ? `onclick="openWork('${it.go}')"` : '';
     return `<article class="jcard" ${act}>
-      <div class="media">${fx(it.fxk)}</div>
+      <div class="media">${it.img ? `<img class="ph" src="${it.img}" alt="" loading="lazy">` : fx(it.fxk)}</div>
       <div class="b"><h4>${T('jt_'+it.k,it.t)}</h4><p>${T('jd_'+it.k,it.d)}</p>
         <div class="hook">${it.hook?T('jh_'+it.k,it.hook):''} <span></span></div></div>
     </article>`;
@@ -3045,7 +3102,7 @@ function planCard(p){
     <div class="pp"><b>$${p.p}</b><span>/ ${T('mo','month')}</span></div>
     <div class="pd">${T('pd_'+p.id,p.d)}</div>
     <ul>${p.f.map((f,i)=>`<li>${T('pf_'+p.id+'_'+i,f)}</li>`).join('')}</ul>
-    <button class="btn wide${p.best?'':' ghost'}">${T('choose','Choose')} ${p.n}</button>
+    <button class="btn wide${p.best?'':' ghost'}" onclick="openPay('${p.id}')">${T('choose','Choose')} ${p.n}</button>
   </article>`;
 }
 function renderPlans(){
@@ -3318,6 +3375,43 @@ function initInpaint(){
   IP.strokes=[]; fit();
   addEventListener('resize', fit, {passive:true});
 }
+
+/* ═══════════════ ОПЛАТА (Робокасса) ═══════════════
+   Владелец 02.08: Робокасса основным способом на сайте, аудитория
+   иностранная → ЦЕНЫ В ДОЛЛАРАХ, но русская оплата на виду.
+   Здесь витрина и выбор способа; ключи и подпись врежем, когда владелец
+   добьёт настройку кабинета Робокассы. Заглушку деньгами не берём. */
+const PAY_METHODS = [
+  {id:'card',   ic:'💳', n:'Card',            h:'Visa · Mastercard · Mir'},
+  {id:'sbp',    ic:'⚡', n:'SBP',             h:'Instant transfer, Russia'},
+  {id:'wallet', ic:'👛', n:'Wallets',         h:'YooMoney and others'},
+  {id:'crypto', ic:'🪙', n:'Crypto',          h:'USDT and major coins'},
+  {id:'inst',   ic:'📆', n:'Pay in parts',    h:'Where Robokassa offers it'},
+];
+let PAY_M = 'card', PAY_PLAN = null;
+const USD_RUB = 81;   // ориентир для справочной строки в рублях
+
+window.openPay = planId => {
+  PAY_PLAN = PLANS.find(p=>p.id===planId) || PLANS[1];
+  $('paySum').textContent = '$' + PAY_PLAN.p;
+  $('payRub').textContent = T('pay_about','about {r} ₽ at today rate')
+    .replace('{r}', (PAY_PLAN.p*USD_RUB).toLocaleString('ru-RU'));
+  $('payMethods').innerHTML = PAY_METHODS.map(m=>`
+    <div class="pm-row${PAY_M===m.id?' on':''}" onclick="pickPay('${m.id}')">
+      <span class="ic">${m.ic}</span>
+      <span class="tx"><b>${T('pm_'+m.id, m.n)}</b><span>${T('pmh_'+m.id, m.h)}</span></span>
+      <span class="rd"></span></div>`).join('');
+  $('pay').classList.add('on');
+};
+window.pickPay = id => { PAY_M = id;
+  document.querySelectorAll('#payMethods .pm-row').forEach((el,i)=>
+    el.classList.toggle('on', PAY_METHODS[i].id===id)); };
+window.closePay = () => $('pay').classList.remove('on');
+window.payGo = () => {
+  /* Робокасса ещё настраивается владельцем — не делаем вид, что платёж прошёл */
+  const b=document.querySelector('#pay .btn.wide');
+  if(b){ b.textContent = T('pay_soon','Payments switch on at launch'); b.disabled=true; }
+};
 
 /* ═══════════════ ТРАНСФЕР: ВЫБОР СТИЛЯ ═══════════════
    Владелец 02.08: человек выбирает вид трансфера ПРЕВЬЮШКАМИ, а не словами.
@@ -3622,7 +3716,8 @@ window.addEventListener('popstate', e => render(e.state || {v:'home', d:0}, fals
 /* Esc закрывает верхний слой, потом уводит назад */
 window.addEventListener('keydown', e => {
   if(e.key!=='Escape') return;
-  const sh=$('sheet'), vw=$('viewer');
+  const sh=$('sheet'), vw=$('viewer'), pz=$('pay');
+  if(pz && pz.classList.contains('on')) { closePay(); return; }
   if(vw && vw.classList.contains('on')) { closeViewer(); return; }
   if(sh.classList.contains('on')) { closeSheet(); return; }
   if($('mega').classList.contains('on')) { $('mega').classList.remove('on'); return; }
