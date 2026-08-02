@@ -602,6 +602,21 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   top:auto;bottom:34px}
 .tile .ba .tagL{left:7px} .tile .ba .tagR{right:7px}
 
+/* ── ПЕРЕКЛЮЧЕНИЕ: фото на теле → вытащенный эскиз ─────────
+   Заказ владельца 02.08: «нужно показать анимацию, что эскиз вытащили».
+   Пара НЕ совмещена по кадру (извлечение переобрезано под работу), поэтому
+   шторка тут не годится — она бы дёргала череп. Честный минимум, который
+   он же и назвал: картинка переключается. */
+.tile .xf{position:absolute;inset:0;z-index:1}
+.tile .xf img{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block}
+.tile .xf .b{animation:xfade 5.2s ease-in-out infinite}
+@keyframes xfade{0%,34%{opacity:0}48%,86%{opacity:1}100%{opacity:0}}
+/* Кому анимация мешает — показываем сразу РЕЗУЛЬТАТ, а не исходник:
+   плитка обещает извлечение, значит её смысл во второй картинке. */
+@media (prefers-reduced-motion:reduce){
+  .tile .xf .b{animation:none;opacity:1}}
+
 /* плитки выбора стиля трансфера: превью само перелистывается */
 .styles{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
 .st{border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;
@@ -1358,8 +1373,8 @@ const fx = k => FX[k] || '';
 
 /* инструменты: cat — для фильтра, cost — в кредитах */
 const FN = [
-  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',  img:'img/demo_sketch.jpg', n:'Create a sketch',      h:'Words in, finished design out'},
-  {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame',  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
+  {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',  img:'img/angel.jpg', n:'Create a sketch',      h:'Words in, finished design out'},
+  {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame', xf:{a:'img/skull_body.jpg',b:'img/skull_extract.jpg'},  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
   {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
   {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', ba:{a:'img/bull_sketch.jpg',b:'img/bull_transfer.jpg'}, n:'Stencil',              h:'Clean lines ready to transfer'},
   {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', img:'img/demo_transfer.jpg', n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
@@ -1367,7 +1382,7 @@ const FN = [
   {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
   {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
-  {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
+  {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep', img:'img/borzoi.jpg',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
   {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake',  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
   {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring',   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
   {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo',   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
@@ -3042,6 +3057,8 @@ function renderTiles(){
     <article class="tile" onclick="openWork('${f.id}')">
       ${f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
                       T('ba_after','TRANSFER'), 'batile_'+f.id)
+             : f.xf ? `<div class="xf"><img src="${f.xf.a}" alt="" loading="lazy">
+                       <img class="b" src="${f.xf.b}" alt="" loading="lazy"></div>`
              : f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
       ${f.tag?`<span class="corner"><span class="tag">${f.tag}</span></span>`:''}
       <span class="cost">${f.cost?f.cost+' '+T('cr','cr'):T('free','free')}</span>
