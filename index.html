@@ -617,6 +617,15 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 @media (prefers-reduced-motion:reduce){
   .tile .xf .b{animation:none;opacity:1}}
 
+/* ── ВИДЕО В ПЛИТКЕ: наши настоящие ролики ────────────────
+   Постер лежит сразу, сам файл не грузится, пока плитка не видна.
+   Ушёл за экран — пауза, иначе телефон греет батарею на невидимом. */
+.tile .vd{position:absolute;inset:0;z-index:1}
+.tile .vd img,.tile .vd video{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block}
+.tile .vd video{opacity:0;transition:opacity .4s ease}
+.tile .vd.on video{opacity:1}
+
 /* плитки выбора стиля трансфера: превью само перелистывается */
 .styles{display:grid;gap:8px;grid-template-columns:repeat(2,1fr)}
 .st{border:1.5px solid var(--line);border-radius:var(--r);overflow:hidden;
@@ -1375,7 +1384,7 @@ const fx = k => FX[k] || '';
 const FN = [
   {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob',  img:'img/angel.jpg', n:'Create a sketch',      h:'Words in, finished design out'},
   {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame', xf:{a:'img/skull_body.jpg',b:'img/skull_extract.jpg'},  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
-  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
+  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes', img:'img/demo_sketch.jpg',  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
   {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', ba:{a:'img/bull_sketch.jpg',b:'img/bull_transfer.jpg'}, n:'Stencil',              h:'Clean lines ready to transfer'},
   {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', img:'img/demo_transfer.jpg', n:'Large transfer',       h:'Backs and sleeves, tiled across A4'},
   {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',   img:'img/demo_tryon.jpg', n:'Try it on the body',   h:'See it on the arm, back, ribs'},
@@ -1383,8 +1392,8 @@ const FN = [
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
   {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
   {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep', img:'img/borzoi.jpg',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
-  {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake',  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
-  {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring',   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
+  {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake', vd:{src:'img/vid_animate.mp4',poster:'img/vid_animate.jpg'},  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
+  {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring', vd:{src:'img/vid_animsketch.mp4',poster:'img/vid_animsketch.jpg'},   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
   {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo',   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
   {id:'tiling',  e:'🧩', cat:'print',  cost:0,  fxk:'pages',  n:'A4 tiling',            h:'Any size laid out across sheets'},
   {id:'palette', e:'🎨', cat:'light',  cost:0,  fxk:'swatch', n:'Palette',              h:'Pull the colours out of a design'},
@@ -3057,6 +3066,7 @@ function renderTiles(){
     <article class="tile" onclick="openWork('${f.id}')">
       ${f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
                       T('ba_after','TRANSFER'), 'batile_'+f.id)
+             : f.vd ? vidHTML(f.vd.src, f.vd.poster, 'vdtile_'+f.id)
              : f.xf ? `<div class="xf"><img src="${f.xf.a}" alt="" loading="lazy">
                        <img class="b" src="${f.xf.b}" alt="" loading="lazy"></div>`
              : f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
@@ -3065,7 +3075,8 @@ function renderTiles(){
       <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div>
         <div class="h">${T('h_'+f.id,f.h)}</div></div>
     </article>`).join('');
-  list.forEach(f => { if (f.ba) baBind('batile_'+f.id, true); });
+  list.forEach(f => { if (f.ba) baBind('batile_'+f.id, true);
+                      if (f.vd) vidBind('vdtile_'+f.id); });
   $('fcount').textContent = `${list.length} / ${FN.length}`;
 }
 window.setFilter = c => { FILTER = c; renderFilters(); renderTiles(); };
@@ -3474,6 +3485,30 @@ function baHTML(a, b, la, lb, id){
     <div class="bar"></div><div class="knob">↔</div>
     <span class="tagL">${la}</span><span class="tagR">${lb}</span></div>`;
 }
+/* Видео в плитке. Постер виден сразу, сам файл не грузится, пока плитка
+   не попала в кадр; ушла за экран — пауза. Кому движение мешает или у кого
+   экономия трафика — остаётся постер, и это ЧЕСТНО: постер снят с того же
+   ролика, обещания без движения он не даёт. */
+function vidHTML(src, poster, id){
+  return `<div class="vd" id="${id}">
+    <img src="${poster}" alt="" loading="lazy">
+    <video muted loop playsinline preload="none" data-src="${src}"></video></div>`;
+}
+function vidBind(id){
+  const w=$(id); if(!w) return;
+  const v=w.querySelector('video'); if(!v) return;
+  let reduced=false, saver=false;
+  try{ reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+       saver=!!(navigator.connection && navigator.connection.saveData); }catch(e){}
+  if(reduced || saver || !('IntersectionObserver' in window)) return;
+  new IntersectionObserver(es=>es.forEach(en=>{
+    if(en.isIntersecting){
+      if(!v.src) v.src=v.dataset.src;
+      v.play().then(()=>w.classList.add('on')).catch(()=>{});
+    } else { v.pause(); w.classList.remove('on'); }
+  }),{rootMargin:'100px',threshold:.25}).observe(w);
+}
+
 /* inTile: шторка живёт внутри кликабельной плитки. Тогда ТЯНУЛ и ТАПНУЛ —
    разные намерения: потянул ползунок → плитку не открываем, просто тапнул →
    открываем как обычно. Без этого любое движение ползунка выбрасывало бы
