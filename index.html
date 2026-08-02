@@ -554,6 +554,111 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   50%{transform:translateY(46px);opacity:1}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ── ЕДИНАЯ ПОЛОСА ВОЗВРАТА (есть на КАЖДОМ экране) ────── */
+.scrbar{display:flex;align-items:center;gap:14px;padding:16px 0 2px}
+.scrttl{font-size:16px;text-transform:uppercase;color:var(--ink-2);
+  font-family:'Oswald',sans-serif;letter-spacing:.04em}
+.scrbar-r{margin-left:auto;display:flex;align-items:center;gap:8px}
+.planbadge{display:inline-block;font:700 10px/1 'Inter',sans-serif;letter-spacing:.1em;
+  padding:4px 7px;border-radius:5px;background:var(--ink);color:var(--paper);
+  vertical-align:1px;margin-right:4px}
+
+/* ── БИБЛИОТЕКА ────────────────────────────────────────── */
+.viewtog{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.viewtog .vt{width:32px;height:30px;display:grid;place-items:center;cursor:pointer;
+  font-size:13px;color:var(--ink-3);background:var(--card);transition:.12s}
+.viewtog .vt.on{background:var(--ink);color:var(--paper)}
+.libtabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 14px;scrollbar-width:none}
+.libtabs::-webkit-scrollbar{display:none}
+.libgrid{display:grid;gap:10px;padding-bottom:60px;
+  grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+.libgrid.big{grid-template-columns:1fr;gap:16px;max-width:620px;margin:0 auto}
+.lw{position:relative;border-radius:var(--r);overflow:hidden;cursor:pointer;
+  border:1px solid var(--line);aspect-ratio:3/4;
+  background:linear-gradient(155deg,var(--media-a),var(--media-b));transition:.16s}
+.libgrid.big .lw{aspect-ratio:auto;min-height:56vh}
+.lw:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.lw .lmeta{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:20px 10px 9px;
+  color:#f2f0e6;background:linear-gradient(transparent,rgba(6,10,7,.85) 48%);
+  display:flex;align-items:flex-end;gap:8px}
+.lw .lmeta .lt{font-size:12px;font-weight:600;flex:1;min-width:0}
+.lw .lmeta .ld{font-size:10.5px;opacity:.6}
+.lw .fav{position:absolute;right:8px;top:8px;z-index:4;width:26px;height:26px;
+  border-radius:50%;display:grid;place-items:center;font-size:12px;cursor:pointer;
+  background:rgba(6,10,7,.45);color:#f2f0e6;backdrop-filter:blur(6px);transition:.14s}
+.lw .fav.on{background:var(--lime);color:#0b1208}
+.libempty{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--ink-2)}
+
+/* ── ПРОСМОТРЩИК РАБОТЫ ────────────────────────────────── */
+.viewer{position:fixed;inset:0;z-index:100;display:none;
+  background:color-mix(in srgb,var(--paper) 97%,transparent);
+  backdrop-filter:blur(10px);flex-direction:column}
+.viewer.on{display:flex}
+.vbar{display:flex;align-items:center;gap:12px;padding:12px 16px;
+  border-bottom:1px solid var(--line)}
+.vmeta{font-size:13px;color:var(--ink-2)}
+.vmeta b{color:var(--ink);font-weight:600}
+.vstage{flex:1;display:grid;place-items:center;padding:18px;overflow:auto}
+.vstage .frame{max-width:min(560px,92vw);width:100%;aspect-ratio:3/4;border-radius:var(--r);
+  background:linear-gradient(155deg,var(--media-a),var(--media-b));position:relative;
+  overflow:hidden;box-shadow:var(--sh-2)}
+.vacts{border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;
+  max-height:38vh;overflow:auto}
+.vact{border:1px solid var(--line);background:var(--card);border-radius:10px;
+  padding:11px 8px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;
+  transition:.14s;display:flex;flex-direction:column;align-items:center;gap:5px}
+.vact:hover{border-color:var(--ink);transform:translateY(-1px)}
+.vact i{font-style:normal;font-size:15px;opacity:.75}
+.vact.primary{background:var(--cta);color:var(--cta-ink);border-color:var(--cta)}
+
+/* ── INPAINT: правка выделенной области ────────────────── */
+.ipwrap{position:relative;width:100%;border-radius:var(--r);overflow:hidden;
+  background:linear-gradient(155deg,var(--media-a),var(--media-b));
+  touch-action:none;cursor:crosshair}
+.ipwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.ipwrap .iphint{position:absolute;inset:0;display:grid;place-items:center;
+  color:#c9d2c2;font-size:12.5px;text-align:center;padding:24px;pointer-events:none;
+  z-index:1}
+/* Системные синие ползунки выдают «не наш» продукт — красим в бренд */
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;
+  height:18px;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:99px;
+  background:var(--line-2)}
+input[type=range]::-moz-range-track{height:4px;border-radius:99px;background:var(--line-2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;
+  width:15px;height:15px;border-radius:50%;background:var(--ink);margin-top:-5.5px;
+  border:2px solid var(--card);box-shadow:0 1px 3px rgba(11,18,8,.3);
+  transition:transform .12s cubic-bezier(.2,.8,.3,1)}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;
+  background:var(--ink);border:2px solid var(--card)}
+input[type=range]:active::-webkit-slider-thumb{transform:scale(1.25)}
+.slider input[type=range]::-webkit-slider-runnable-track{background:rgba(255,255,255,.25)}
+.slider input[type=range]::-webkit-slider-thumb{background:var(--lime);border-color:transparent}
+
+.iptools{display:flex;align-items:center;gap:8px;margin:10px auto 0;flex-wrap:wrap;
+  max-width:460px}
+.iptools .brush{display:flex;align-items:center;gap:8px;flex:1;min-width:150px;
+  border:1px solid var(--line);border-radius:9px;padding:6px 11px;background:var(--card)}
+.iptools .brush span{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.iptools .brush input{flex:1;min-width:60px}
+.ipbtn{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);
+  background:var(--card);display:grid;place-items:center;cursor:pointer;font-size:13px;
+  color:var(--ink-2);transition:.14s}
+.ipbtn:hover{border-color:var(--ink);color:var(--ink)}
+.ipbtn.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+
+/* ── ГОЛОСОВОЙ ВВОД ────────────────────────────────────── */
+.withmic{position:relative}
+.mic{position:absolute;right:8px;bottom:8px;width:30px;height:30px;border-radius:50%;
+  border:1px solid var(--line);background:var(--card);display:grid;place-items:center;
+  cursor:pointer;font-size:13px;color:var(--ink-2);transition:.14s;z-index:2}
+.mic:hover{border-color:var(--ink);color:var(--ink)}
+.mic.rec{background:var(--lime);color:#0b1208;border-color:var(--lime);
+  animation:micpulse 1.1s ease-in-out infinite}
+@keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(196,240,0,.5)}
+  50%{box-shadow:0 0 0 7px rgba(196,240,0,0)}}
+
 /* ── НИЖНЯЯ ПАНЕЛЬ ─────────────────────────────────────── */
 .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:70;display:none;
   background:color-mix(in srgb,var(--paper) 94%,transparent);
@@ -564,18 +669,31 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 .tabbar div i{display:block;font-size:17px;font-style:normal;margin-bottom:1px}
 .tabbar div.on{color:var(--ink)}
 .tabbar .hot{position:relative}
+.tabbar .hotlbl{display:block;margin-top:32px;font-size:10px}
+/* центральная кнопка ВСЕГДА лаймовая — прямое указание владельца 02.08 */
 .tabbar .hotbtn{position:absolute;left:50%;top:-24px;transform:translateX(-50%);
-  width:52px;height:52px;border-radius:50%;background:var(--cta);
-  color:var(--cta-ink);display:grid;place-items:center;font-size:22px;
-  border:4px solid var(--paper);box-shadow:var(--sh-2)}
+  width:54px;height:54px;border-radius:50%;background:var(--lime);
+  color:#0b1208;display:grid;place-items:center;font-size:24px;font-weight:600;
+  border:4px solid var(--paper);box-shadow:0 4px 16px rgba(196,240,0,.4);
+  transition:transform .12s cubic-bezier(.2,.8,.3,1)}
+.tabbar .hot:active .hotbtn{transform:translateX(-50%) scale(.92)}
 
 @media(max-width:1100px){
   .wkwrap{grid-template-columns:1fr}
   .panel{position:static}
   nav.main{display:none}
   .tabbar{display:flex}
-  body{padding-bottom:62px}
+  body{padding-bottom:76px}
   .me .signin{display:none}
+}
+/* Сироты в сетках. При средней ширине 3 карточки ложились как 2+1, и одинокая
+   третья читалась как «страница уехала влево». Ниже порога — одна колонка. */
+@media(max-width:980px){
+  .plans{grid-template-columns:1fr}
+  .cubes{grid-template-columns:1fr}
+}
+@media(min-width:981px){
+  .plans{grid-template-columns:repeat(3,1fr)}
 }
 @media(max-width:760px){
   :root{--gut:16px;--sec:28px}
@@ -588,6 +706,240 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   .me .bal{display:none}
   /* на телефоне промо-полоса не должна занимать три строки */
   .promo [data-i="promo_t"]{display:none}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   СЛОЙ ОТКЛИКА — вставить ПОСЛЕДНИМ блоком внутри <style> в site/index.html.
+   Идёт после всех текущих правил, поэтому перебивает их по порядку каскада.
+   Ничего из существующего удалять не надо.
+   Числа сняты с боевого CSS higgsfield.ai (сборка 9c7b4a9d, 02.08.2026).
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 0. Токены движения ──────────────────────────────────────────
+   У них: --hf-duration-fast .1s / normal .2s / slow .3s и отдельная
+   ступень 80ms под нажатие. Ключ — АСИММЕТРИЯ: вниз быстрее, чем вверх. */
+:root{
+  --t-press:80ms;      /* палец вниз — почти мгновенно */
+  --t-fast:130ms;      /* возврат, цвет, граница */
+  --t-norm:200ms;      /* тень, фон, раскрытие */
+  --t-slow:300ms;      /* шторки, панели */
+
+  --e-out:cubic-bezier(0,0,.2,1);          /* стандарт: резкий старт, мягкий стоп */
+  --e-swift:cubic-bezier(.2,0,0,1);        /* нажатие */
+  --e-emph:cubic-bezier(.32,.72,0,1);      /* панели, шторки */
+  --e-expo:cubic-bezier(.16,1,.3,1);       /* появление контента */
+  --e-spring:cubic-bezier(.34,1.56,.64,1); /* только точечно: счётчики, бейджи */
+
+  /* Тени: контактная ТЕМНЕЕ и ТУЖЕ рассеянной + отрицательный spread.
+     Было наоборот — отсюда «серая дымка» вместо веса. */
+  --sh-1:0 1px 2px rgba(11,18,8,.07);
+  --sh-2:0 1px 2px rgba(11,18,8,.10),0 8px 20px -6px rgba(11,18,8,.13);
+  --sh-3:0 2px 4px rgba(11,18,8,.12),0 24px 48px -14px rgba(11,18,8,.20);
+  /* Блик по верхней кромке — то, что делает поверхность физической.
+     Два токена, не один: на кремовом чипе и на чернильной кнопке нужна
+     разная сила блика, иначе либо не видно, либо белая полоса. */
+  --sheen:inset 0 1px 0 rgba(255,255,255,.60);      /* светлые поверхности */
+  --sheen-cta:inset 0 1px 0 rgba(255,255,255,.18);  /* заливка кнопки */
+  --bevel:inset 0 -3px 0 rgba(0,0,0,.20);
+  --ring:0 0 0 2px var(--paper),0 0 0 4px var(--lime);
+}
+:root[data-theme="dark"]{
+  --sh-1:0 1px 2px rgba(0,0,0,.45);
+  --sh-2:0 1px 2px rgba(0,0,0,.55),0 8px 20px -6px rgba(0,0,0,.55);
+  --sh-3:0 2px 4px rgba(0,0,0,.6),0 24px 48px -14px rgba(0,0,0,.65);
+  --sheen:inset 0 1px 0 rgba(255,255,255,.07);
+  --sheen-cta:inset 0 1px 0 rgba(255,255,255,.30);
+  --bevel:inset 0 -3px 0 rgba(0,0,0,.28);
+}
+
+/* ── 1. Гигиена нажатия ──────────────────────────────────────────
+   Серая вспышка iOS и задержка двойного тапа — это и есть «тормозит».
+   Три строки, ноль стоимости. */
+button,a,[role="button"],.tile,.preset,.ncard,.jcard,.pick,.pm,.drop,
+.fl,.pill,.chip,.ic-btn,.promo-cta,.cmd .sel,.tabbar div,.acct,.sec-hd .more{
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+button,.fl,.pill,.chip,.ic-btn,.promo-cta,.tabbar div,.sec-hd .more,.tag{
+  -webkit-user-select:none;user-select:none;
+}
+
+/* ── 2. Кнопка: физика клавиши ───────────────────────────────────
+   Их аккордная кнопка: rounded-xl + shadow-[inset_0_-3px_rgba(0,0,0,.43)]
+   + pb-0.5 + радиальная заливка светлее к центру.
+   Плоская заливка + нулевой :active = «дёшево» при тех же цветах. */
+.btn{
+  transition:transform var(--t-fast) var(--e-out),
+             filter var(--t-fast) var(--e-out),
+             box-shadow var(--t-norm) var(--e-out),
+             background-color var(--t-fast) var(--e-out),
+             border-color var(--t-fast) var(--e-out),
+             color var(--t-fast) var(--e-out);
+  box-shadow:var(--sheen-cta),var(--bevel),var(--sh-1);
+  padding-bottom:11px;            /* было 10 — метка встаёт над фаской */
+}
+.btn:not(.ghost){
+  background-image:radial-gradient(120% 150% at 50% -10%,
+    color-mix(in srgb,var(--cta) 86%,#fff) 0%,var(--cta) 62%);
+}
+.btn.big{padding-bottom:14px}
+@media(hover:hover){
+  .btn:hover{transform:translateY(-1px);filter:brightness(1.06);
+    box-shadow:var(--sheen-cta),var(--bevel),var(--sh-2)}
+  .btn.ghost:hover{filter:none;transform:none;border-color:var(--ink);
+    background:color-mix(in srgb,var(--ink) 4%,transparent);box-shadow:var(--sheen)}
+}
+.btn:active{
+  transition-duration:var(--t-press);
+  transform:translateY(1px) scale(.985);
+  filter:brightness(.94);
+  box-shadow:var(--sheen-cta),inset 0 -1px 0 rgba(0,0,0,.22),var(--sh-1);
+}
+.btn.ghost{box-shadow:none}
+.btn.ghost:active{box-shadow:none;filter:brightness(.96)}
+.btn:disabled,.btn[aria-disabled="true"]{
+  opacity:.45;pointer-events:none;filter:none;transform:none}
+
+/* ── 3. Мелкие управляющие: тот же закон, слабее амплитуда ───────
+   Правило владельца «продумано ВЕЗДЕ» = ни одного кликабельного
+   элемента без ответа на палец. */
+.pill,.fl,.chip,.ic-btn,.promo-cta,.cmd .sel,.pick,.pm,.drop,
+.sec-hd .more,.mega a.item,nav.main a,.tabbar div,.acct,.me .signin,.me .bal{
+  transition:transform var(--t-fast) var(--e-out),
+             filter var(--t-fast) var(--e-out),
+             background-color var(--t-fast) var(--e-out),
+             border-color var(--t-fast) var(--e-out),
+             color var(--t-fast) var(--e-out),
+             box-shadow var(--t-norm) var(--e-out);
+}
+.pill:active,.fl:active,.chip:active,.ic-btn:active,.promo-cta:active,
+.cmd .sel:active,.pick:active,.pm:active,.drop:active,.sec-hd .more:active,
+.mega a.item:active,nav.main a:active,.acct:active,
+.me .signin:active,.me .bal:active{
+  transition-duration:var(--t-press);
+  transform:scale(.97);
+  filter:brightness(.95);
+}
+.tabbar div:active{transition-duration:var(--t-press);opacity:.6}
+.ic-btn,.pill,.fl,.chip,.cmd .sel{box-shadow:var(--sheen)}
+
+/* ── 4. Карточки: не подпрыгивают, а отзываются ──────────────────
+   У них карточка на наведении меняет ГРАНИЦУ и яркость, на нажатии —
+   brightness-95. Подъём на -2px с 34-пиксельной тенью = шаблон 2019-го
+   и пересчёт большой размытой тени на каждом наведении в сетке из 20 плиток. */
+.tile,.ncard,.preset,.jcard,.cube{
+  transition:transform var(--t-fast) var(--e-out),
+             filter var(--t-norm) var(--e-out),
+             border-color var(--t-fast) var(--e-out),
+             box-shadow var(--t-norm) var(--e-out);
+}
+@media(hover:hover){
+  .tile:hover,.ncard:hover,.preset:hover,.jcard:hover{
+    transform:none;
+    border-color:var(--line-2);
+    filter:brightness(1.04);
+    box-shadow:var(--sh-2);
+  }
+  .cube:hover{box-shadow:var(--sh-2);border-color:var(--line-2)}
+}
+.tile:active,.ncard:active,.preset:active,.jcard:active{
+  transition-duration:var(--t-press);
+  transform:scale(.99);
+  filter:brightness(.95);
+  box-shadow:var(--sh-1);
+}
+/* На тач-устройстве :hover залипает после тапа — плитка остаётся
+   «поднятой» до тапа в пустоту. Отсюда ощущение глюка. */
+@media(hover:none){
+  .tile:hover,.ncard:hover,.preset:hover,.jcard:hover,.cube:hover,
+  .btn:hover,.pill:hover,.fl:hover,.chip:hover,.ic-btn:hover{
+    transform:none;filter:none;
+  }
+  .tile .lbl .h{max-height:32px}          /* подпись на телефоне видна сразу */
+}
+
+/* ── 5. Фокус с клавиатуры ───────────────────────────────────────
+   Сейчас его нет вообще. Кольцо только на :focus-visible — мышь его
+   не увидит никогда, клавиатура увидит всегда. */
+:where(button,a,input,select,textarea,[tabindex]):focus{outline:none}
+:where(button,a,input,select,textarea,[role="button"],[tabindex]):focus-visible{
+  outline:none;
+  box-shadow:var(--ring);
+}
+.btn:focus-visible{box-shadow:var(--sheen-cta),var(--bevel),var(--ring)}
+.cmd:focus-within{border-color:var(--ink-3);box-shadow:var(--sh-2)}
+.panel textarea:focus-visible,.panel select:focus-visible,
+.panel input:focus-visible{border-color:var(--ink);box-shadow:0 0 0 3px
+  color-mix(in srgb,var(--lime) 40%,transparent)}
+
+/* ── 6. Типографика: трекинг идёт ВНИЗ с ростом кегля ────────────
+   У них: 16px → -1%, 28px+ → -2%, брендовые капсы → -4%.
+   У нас на заголовках стоял +.01em. Плюсовой трекинг на крупном тексте —
+   самый надёжный признак дешёвого макета. Мелкие капс-подписи — наоборот. */
+h1,.top h1{letter-spacing:-.018em}
+h2,.sec-hd h2{letter-spacing:-.008em}
+h3,.cube h3,.ncard .meta h3{letter-spacing:-.011em}
+.plan .pn{letter-spacing:.02em}
+.hero-stat .num,.plan .pp b{letter-spacing:-.03em}
+body{letter-spacing:-.006em;text-rendering:optimizeSpeed}
+.eyebrow,.tag{letter-spacing:.12em}
+/* Цифры не должны дёргать соседей при смене — платит за «дорого» больше,
+   чем любая тень. Токены, цены, счётчики, метрики. */
+.me .bal,.me .bal b,.fl .ct,.tile .cost,.plan .pp b,.hero-stat .num,
+.stat,.acct{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ── 7. Скорость: скелетоны вместо пустоты ───────────────────────
+   Пустой прямоугольник = «висит». Двигающийся = «грузится».
+   Разница в восприятии ~30% при одинаковом времени ответа. */
+.skel{position:relative;overflow:hidden;background:var(--sunk);
+  border-radius:var(--r)}
+.skel::after{content:"";position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,
+    color-mix(in srgb,var(--ink) 6%,transparent),transparent);
+  animation:skelsweep 1.4s var(--e-out) infinite}
+@keyframes skelsweep{to{transform:translateX(100%)}}
+/* Кнопка в работе: не подменять текст, а притушить и снять указатель —
+   иначе прыгает ширина и ломается макет. */
+.btn.busy{pointer-events:none;filter:saturate(.6) brightness(.96)}
+.btn.busy::after{content:"";width:13px;height:13px;border-radius:50%;
+  border:2px solid currentColor;border-top-color:transparent;
+  animation:spin .6s linear infinite}
+
+/* ── 8. Ноль сдвига макета ───────────────────────────────────────
+   Каждый медиа-бокс держит место до загрузки. CLS 0 читается как «быстро». */
+.ncard .media,.jcard .media,.cube .demo{
+  content-visibility:auto;contain-intrinsic-size:auto 180px}
+img,video{max-width:100%;height:auto;display:block}
+/* Липкая шапка не должна дёргать контент при появлении скроллбара. */
+html{scrollbar-gutter:stable}
+
+/* ── 9. Нижняя панель — главный орган на телефоне ────────────────
+   Их центральная кнопка: inset 0 -0.25rem rgba(0,0,0,.25)
+   + active:translate-y-0.5 + active:opacity-60. Клавиша уходит в свою фаску. */
+.tabbar .hotbtn{
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.22),0 4px 16px rgba(196,240,0,.38);
+  transition:transform var(--t-fast) var(--e-out),
+             box-shadow var(--t-fast) var(--e-out),opacity var(--t-fast) linear;
+}
+.tabbar .hot:active .hotbtn{
+  transition-duration:var(--t-press);
+  transform:translateX(-50%) translateY(2px) scale(.94);
+  box-shadow:inset 0 -1px 0 rgba(0,0,0,.22),0 2px 8px rgba(196,240,0,.3);
+  opacity:.85;
+}
+.tabbar div.on i{transform:translateY(-1px)}
+.tabbar div i{transition:transform var(--t-fast) var(--e-spring)}
+
+/* ── 10. Уважение к настройке «меньше движения» ──────────────────
+   Правильно не «выключить всё» (тогда пропадает и отклик на нажатие),
+   а убрать перемещения и циклы, оставив мгновенную обратную связь. */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:1ms!important;animation-iteration-count:1!important;
+    transition-duration:1ms!important;scroll-behavior:auto!important}
+  .btn:active,.tile:active,.pill:active,.fl:active,.chip:active,
+  .ic-btn:active,.preset:active,.ncard:active,.jcard:active{
+    transform:none;filter:brightness(.92)}
 }
 </style>
 </head>
@@ -715,6 +1067,7 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
       <div>
         <div class="stagebox">
           <div class="stage" id="wkStage"></div>
+          <div id="wkStageTools"></div>
           <div class="aftertools" id="wkAfter"></div>
         </div>
       </div>
@@ -726,11 +1079,18 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 <!-- ═════════ ПРОФИЛЬ ═════════ -->
 <main id="v-profile" class="hidden">
   <section class="wrap">
+    <div class="scrbar">
+      <button class="btn ghost" onclick="goBack()">← <span data-i="back">Back</span></button>
+      <h2 class="scrttl" data-i="tab_me">Profile</h2>
+    </div>
     <div class="phead">
       <div class="big-ava"><i>N</i></div>
       <div class="who">
         <h2>Nikolai Blok</h2>
-        <p><span data-i="pr_since">With us since March</span> · <span class="tag" style="background:var(--sunk);color:var(--ink-2)" data-i="demo">DEMO DATA</span></p>
+        <p><span class="planbadge">PRO</span>
+           <span data-i="pr_until">renews 28 Aug</span> ·
+           <span data-i="pr_since">with us since March</span> ·
+           <span class="tag" style="background:var(--sunk);color:var(--ink-2)" data-i="demo">DEMO DATA</span></p>
       </div>
       <div class="bcard">
         <div><div class="n">248</div><div class="l" data-i="pr_left">credits left</div></div>
@@ -739,11 +1099,11 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
     </div>
 
     <div class="hero-stat">
-      <div class="num">31</div>
+      <div class="num">95</div>
       <div class="txt">
-        <h3 data-i="pr_ev">evenings you got back</h3>
+        <h3 data-i="pr_ev">hours you got back</h3>
         <p data-i="pr_ev_d">That is what the tool has actually bought you. Not features — hours you did not spend redrawing at midnight.</p>
-        <div class="math" data-i="pr_math">142 sketches × ~40 min ≈ 95 h ≈ 31 evenings (3 h each)</div>
+        <div class="math" data-i="pr_math">142 sketches × ~40 min at the board ≈ 95 hours</div>
       </div>
     </div>
 
@@ -769,6 +1129,10 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 <!-- ═════════ ПРАЙС ═════════ -->
 <main id="v-pricing" class="hidden">
   <section class="wrap">
+    <div class="scrbar">
+      <button class="btn ghost" onclick="goBack()">← <span data-i="back">Back</span></button>
+      <h2 class="scrttl" data-i="tab_pl">Plans</h2>
+    </div>
     <div class="top">
       <h1 data-i="pl_h1">Founding plans</h1>
       <p data-i="pl_sub2">Three tiers, no cheap one-off packs. The price you join at is the price you keep — it does not move when we launch.</p>
@@ -785,13 +1149,45 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 <!-- ═════════ ЖУРНАЛ ═════════ -->
 <main id="v-journal" class="hidden">
   <section class="wrap">
+    <div class="scrbar">
+      <button class="btn ghost" onclick="goBack()">← <span data-i="back">Back</span></button>
+      <h2 class="scrttl" data-i="tab_jrn">News</h2>
+    </div>
     <div class="top">
-      <h1 data-i="jrn_h1">Journal &amp; learning</h1>
-      <p data-i="jrn_sub2">Interviews, what is moving in the tattoo world, and craft breakdowns. One funnel: read it, open the tool, get better at it.</p>
+      <h1 data-i="jrn_h1">The tattoo journal</h1>
+      <p data-i="jrn_sub2">What is moving in the tattoo world, interviews with artists, new tools, collabs and contests. Read it, open the tool, get better at it.</p>
     </div>
     <div id="journalFull"></div>
   </section>
 </main>
+
+<!-- ═════════ БИБЛИОТЕКА ═════════ -->
+<main id="v-library" class="hidden">
+  <section class="wrap">
+    <div class="scrbar">
+      <button class="btn ghost" onclick="goBack()">← <span data-i="back">Back</span></button>
+      <h2 class="scrttl" data-i="tab_lib">Library</h2>
+      <div class="scrbar-r">
+        <div class="viewtog">
+          <span class="vt on" id="vtGrid" onclick="setLibView('grid')" title="Grid">▦</span>
+          <span class="vt" id="vtBig" onclick="setLibView('big')" title="Large">▢</span>
+        </div>
+      </div>
+    </div>
+    <div class="libtabs" id="libtabs"></div>
+    <div class="libgrid" id="libgrid"></div>
+  </section>
+</main>
+
+<!-- ═════════ ПРОСМОТРЩИК РАБОТЫ ═════════ -->
+<div class="viewer" id="viewer">
+  <div class="vbar">
+    <button class="ic-btn" onclick="closeViewer()" title="Close">✕</button>
+    <div class="vmeta" id="vMeta"></div>
+  </div>
+  <div class="vstage" id="vStage"></div>
+  <div class="vacts" id="vActs"></div>
+</div>
 
 <!-- выбор функции -->
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSheet()">
@@ -804,9 +1200,10 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 
 <div class="tabbar">
   <div class="on" onclick="go('home')"><i>⌂</i><span data-i="tab_home">Home</span></div>
-  <div onclick="go('journal')"><i>◍</i><span data-i="tab_jrn">Journal</span></div>
-  <div class="hot" onclick="openSheet()"><span class="hotbtn">＋</span></div>
-  <div onclick="go('pricing')"><i>▦</i><span data-i="tab_pl">Plans</span></div>
+  <div onclick="go('journal')"><i>◈</i><span data-i="tab_jrn">News</span></div>
+  <div class="hot" onclick="openSheet()"><span class="hotbtn">✦</span>
+    <span class="hotlbl" data-i="tab_gen">Generate</span></div>
+  <div onclick="go('library')"><i>▦</i><span data-i="tab_lib">Library</span></div>
   <div onclick="go('profile')"><i>◐</i><span data-i="tab_me">Profile</span></div>
 </div>
 
@@ -849,6 +1246,7 @@ const FN = [
   {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
   {id:'light',   e:'💡', cat:'light',  cost:1,  fxk:'sweep',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
   {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake',  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
+  {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring',   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
   {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo',   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
   {id:'tiling',  e:'🧩', cat:'print',  cost:0,  fxk:'pages',  n:'A4 tiling',            h:'Any size laid out across sheets'},
   {id:'palette', e:'🎨', cat:'light',  cost:0,  fxk:'swatch', n:'Palette',              h:'Pull the colours out of a design'},
@@ -859,6 +1257,12 @@ const CATS = [
   {id:'3d',    n:'3D'},    {id:'light', n:'Light'},  {id:'video',n:'Video'},
   {id:'print', n:'Print'},
 ];
+
+/* 17 стилей из нашей боевой таксономии (design/style_taxonomy.json) —
+   у каждого в движке лежит авторитетное описание, не выдуманный список */
+const STYLES = ['fine-line','blackwork','dotwork','ornamental','neo-traditional',
+  'realism','japanese','chicano','tribal','neo-tribal','neo-sigilism',
+  'geometric','lettering','trash polka','slash-cut','cartoon','pop art'];
 
 /* пресеты оживления — хук в первые две секунды */
 const PRESETS = [
@@ -968,23 +1372,33 @@ const FAQ = [
 const WORK = {
   sketch:{stage:{k:'img',ar:'3/4'},
     fields:[{t:'text',l:'What to draw',ph:'A coiled snake, fine-line, forearm, stretched vertically…'},
-            {t:'chips',l:'Style',v:['neo-traditional','realism','graphic','old school','ornamental','fine-line']},
-            {t:'chips',l:'Where on the body',v:['forearm','shoulder','back','ribs','leg','hand']},
+            {t:'chips',l:'Style',v:STYLES},
+            {t:'chips',l:'Where on the body',v:['forearm','shoulder','back','ribs','leg','hand','neck','chest']},
             {t:'sel',l:'Size',v:['Small · 8 cm','Medium · 15 cm','Large · 28 cm','Full sleeve · 50 cm'],def:1}],
     cta:'Generate', note:'First option in about 40 seconds',
-    after:['stencil','tryon','render3d','animate','link']},
+    after:['edit','stencil','tryon','render3d','animsketch','link']},
+  animsketch:{stage:{k:'vid'},
+    fields:[{t:'drop',l:'The sketch',e:'🖼',tt:'Drop the sketch in',ss:'Line work on paper reads best'},
+            {t:'pm',l:'The hook',v:[['Cobra strike','lunges at the camera'],['Spin & fly','twists up and out'],
+                                    ['Ink bloom','draws itself onto the paper'],['Paper wake','the sheet breathes'],
+                                    ['Neon pass','a light sweeps across'],['Camera dive','the camera falls in']]},
+            {t:'sel',l:'Length',v:['3 seconds','5 seconds'],def:1},
+            {t:'chips',l:'Format',v:['9:16','1:1','16:9']}],
+    cta:'Animate the sketch', note:'Sell the idea before it is on skin',
+    after:['link','tryon','animate']},
   extract:{stage:{k:'img',ar:'3/4'},
     fields:[{t:'drop',l:'The photo',e:'📷',tt:'Drop a photo in',ss:'Any shot — a healed tattoo, a poster, a drawing on paper'},
             {t:'chips',l:'Pull out',v:['the line work','the whole design','one element']},
             {t:'chips',l:'Clean up',v:['light','medium','hard']}],
     cta:'Extract', note:'Lines come out separated from the background',
     after:['stencil','sketch','tryon','bigprint']},
-  edit:{stage:{k:'img',ar:'3/4'},
+  edit:{stage:{k:'inpaint'},
     fields:[{t:'drop',l:'The sketch',e:'🖼',tt:'Drop the sketch in',ss:'PNG or JPG up to 20 MB'},
-            {t:'text',l:'What to change',ph:'Take the roses off the left side, make the eye harder, extend the tail down…'},
-            {t:'chips',l:'How far to go',v:['touch it','rework it','redraw it']}],
-    cta:'Apply', note:'The style holds — only what you named moves',
-    after:['stencil','tryon','animate','link']},
+            {t:'text',l:'What to do with the painted area',ph:'Make this face harder · replace the rose with a moth · open the eye'},
+            {t:'chips',l:'How far to go',v:['touch it','rework it','redraw it']},
+            {t:'chips',l:'Outside the area',v:['keep it exactly','let it blend']}],
+    cta:'Change the area', note:'Only what you painted moves. The rest of the sketch is untouched.',
+    after:['stencil','tryon','animate','animsketch','link']},
   stencil:{stage:{k:'img',ar:'3/4'},
     fields:[{t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'PNG or JPG up to 20 MB'},
             {t:'chips',l:'Line weight',v:['thin','medium','heavy']},
@@ -1135,7 +1549,8 @@ function renderNav(){
   const items = [['sketch','Sketch'],['body','On body'],['video','Video'],['apps','Mini-apps']];
   $('mainnav').innerHTML =
     items.map(([k,n])=>`<a data-mega="${k}">${T('nav_'+k,n)}</a>`).join('') +
-    `<a onclick="go('journal')">${T('jrn','Journal')}</a>` +
+    `<a onclick="go('journal')">${T('tab_jrn','News')}</a>` +
+    `<a onclick="go('library')">${T('tab_lib','Library')}</a>` +
     `<a onclick="go('pricing')">${T('pl','Plans')}</a>`;
   bindMega();
 }
@@ -1271,6 +1686,153 @@ function renderProfile(){
       <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div></div></article>`).join('');
 }
 
+/* ═══════════════ БИБЛИОТЕКА ═══════════════
+   Владелец: «нужна библиотека того, что он загрузил, и того, что сгенерировал.
+   Переключатель сетка / одна большая на весь экран — на мобиле крупная удобнее». */
+const LIB_TABS=[['all','All'],['sketch','Sketches'],['body','On body'],
+                ['video','Video'],['upload','Uploaded'],['fav','Favourites']];
+const WORKS=[
+  {id:1, kind:'sketch', fxk:'blob',   t:'Coiled snake, fine-line', d:'2 Aug', by:'Create a sketch'},
+  {id:2, kind:'sketch', fxk:'nodes',  t:'Skull, slash-cut',        d:'2 Aug', by:'Edit a sketch', fav:1},
+  {id:3, kind:'body',   fxk:'arm',    t:'Forearm try-on',          d:'1 Aug', by:'Try it on the body'},
+  {id:4, kind:'sketch', fxk:'lines',  t:'Stencil — rose',          d:'1 Aug', by:'Stencil'},
+  {id:5, kind:'video',  fxk:'snake',  t:'Cobra strike, 5s',        d:'1 Aug', by:'Animate', fav:1},
+  {id:6, kind:'upload', fxk:'frame',  t:'Client reference',        d:'1 Aug', by:'Uploaded'},
+  {id:7, kind:'sketch', fxk:'swatch', t:'Ornamental sleeve',       d:'31 Jul', by:'Create a sketch'},
+  {id:8, kind:'body',   fxk:'armv',   t:'Ribs, video try-on',      d:'31 Jul', by:'Video try-on'},
+  {id:9, kind:'sketch', fxk:'stack',  t:'Back piece, A4 layout',   d:'30 Jul', by:'Large transfer'},
+  {id:10,kind:'upload', fxk:'halo',   t:'Healed shot, raw',        d:'30 Jul', by:'Uploaded'},
+  {id:11,kind:'sketch', fxk:'eye',    t:'Zeus, 3D turnaround',     d:'29 Jul', by:'3D turnaround'},
+  {id:12,kind:'video',  fxk:'ring',   t:'Spin & fly, 5s',          d:'29 Jul', by:'Animate'},
+];
+let LIB_VIEW='grid', LIB_TAB='all';
+window.setLibView = v => { LIB_VIEW=v; renderLibrary();
+  $('vtGrid').classList.toggle('on', v==='grid');
+  $('vtBig').classList.toggle('on', v==='big'); };
+window.setLibTab = t => { LIB_TAB=t; renderLibrary(); };
+function renderLibrary(){
+  $('libtabs').innerHTML = LIB_TABS.map(([id,n])=>
+    `<a class="fl${LIB_TAB===id?' on':''}" onclick="setLibTab('${id}')">
+       <span class="dot"></span>${T('lt_'+id,n)}</a>`).join('');
+  const list = LIB_TAB==='all' ? WORKS
+    : LIB_TAB==='fav' ? WORKS.filter(w=>w.fav)
+    : WORKS.filter(w=>w.kind===LIB_TAB);
+  const g=$('libgrid');
+  g.className = 'libgrid' + (LIB_VIEW==='big' ? ' big' : '');
+  g.innerHTML = list.length ? list.map(w=>`
+    <article class="lw" onclick="openViewer(${w.id})">${fx(w.fxk)}
+      <span class="fav${w.fav?' on':''}" onclick="event.stopPropagation();toggleFav(${w.id},this)">★</span>
+      <div class="lmeta"><span class="lt">${w.t}</span><span class="ld">${w.d}</span></div>
+    </article>`).join('')
+    : `<div class="libempty">${T('lib_empty','Nothing here yet. Make something and it lands in this shelf.')}</div>`;
+}
+window.toggleFav = (id,el) => {
+  const w=WORKS.find(x=>x.id===id); if(!w) return;
+  w.fav = w.fav?0:1; el.classList.toggle('on', !!w.fav);
+};
+
+/* ═══════════════ ПРОСМОТРЩИК РАБОТЫ ═══════════════
+   Панель действий по образцу Хиггсфилда, переложенная на тату. */
+const VACTS=[
+  {i:'✏️', n:'Edit area',    go:'edit',     primary:1, hint:'inpaint'},
+  {i:'↻',  n:'Recreate',     go:'sketch'},
+  {i:'🎬', n:'Animate',      go:'animate'},
+  {i:'📄', n:'Stencil',      go:'stencil'},
+  {i:'🫱', n:'Try on body',  go:'tryon'},
+  {i:'🖨', n:'A4 layout',    go:'tiling'},
+  {i:'🧊', n:'Angles',       go:'render3d'},
+  {i:'💡', n:'Relight',      go:'light'},
+  {i:'✨', n:'Enhance',      go:'retouch'},
+  {i:'🔗', n:'Send to client',go:'link'},
+  {i:'⬇️', n:'Download',     go:''},
+];
+window.openViewer = id => {
+  const w=WORKS.find(x=>x.id===id)||WORKS[0];
+  $('vMeta').innerHTML = `<b>${w.t}</b> · ${w.by} · ${w.d}`;
+  $('vStage').innerHTML = `<div class="frame">${fx(w.fxk)}</div>`;
+  $('vActs').innerHTML = VACTS.map(a=>`
+    <div class="vact${a.primary?' primary':''}"
+      onclick="${a.go?`closeViewer();openWork('${a.go}')`:'closeViewer()'}">
+      <i>${a.i}</i><span>${T('va_'+(a.go||'dl'), a.n)}</span></div>`).join('');
+  $('viewer').classList.add('on');
+};
+window.closeViewer = () => $('viewer').classList.remove('on');
+
+/* ═══════════════ INPAINT — правка выделенной области ═══════════════
+   Владелец: «хочу карандашом выделить область, например лицо, написать
+   „измени лицо" — и чтобы поменялось только выделенное».
+   Здесь каркас: кисть, ластик, отмена, размер. Маска уходит движку
+   отдельным PNG (контракт — в задаче для команды движка). */
+let IP = {on:false, size:34, mode:'brush', strokes:[], cur:null};
+function initInpaint(){
+  const cv=$('inpaintCanvas'); if(!cv) return;
+  const wrap=cv.parentElement, ctx=cv.getContext('2d');
+  const fit=()=>{ const r=wrap.getBoundingClientRect();
+    cv.width=Math.round(r.width*devicePixelRatio);
+    cv.height=Math.round(r.height*devicePixelRatio);
+    redraw(); };
+  const pt=e=>{ const r=cv.getBoundingClientRect();
+    return {x:(e.clientX-r.left)/r.width, y:(e.clientY-r.top)/r.height}; };
+  function redraw(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    for(const s of IP.strokes){
+      ctx.globalCompositeOperation = s.mode==='erase' ? 'destination-out' : 'source-over';
+      ctx.strokeStyle='rgba(196,240,0,.45)';
+      ctx.lineWidth = s.size*devicePixelRatio;
+      ctx.beginPath();
+      s.pts.forEach((p,i)=> i? ctx.lineTo(p.x*cv.width,p.y*cv.height)
+                             : ctx.moveTo(p.x*cv.width,p.y*cv.height));
+      if(s.pts.length===1){ ctx.lineTo(s.pts[0].x*cv.width+.1, s.pts[0].y*cv.height); }
+      ctx.stroke();
+    }
+    ctx.globalCompositeOperation='source-over';
+    const hint=wrap.querySelector('.iphint');
+    if(hint) hint.style.display = IP.strokes.length ? 'none' : 'grid';
+    const go=$('ipGo'); if(go) go.disabled = !IP.strokes.length;
+  }
+  cv.onpointerdown=e=>{ cv.setPointerCapture(e.pointerId); IP.on=true;
+    IP.cur={mode:IP.mode, size:IP.size, pts:[pt(e)]}; IP.strokes.push(IP.cur); redraw(); };
+  cv.onpointermove=e=>{ if(!IP.on||!IP.cur) return; IP.cur.pts.push(pt(e)); redraw(); };
+  cv.onpointerup=cv.onpointercancel=()=>{ IP.on=false; IP.cur=null; };
+  window.ipUndo=()=>{ IP.strokes.pop(); redraw(); };
+  window.ipClear=()=>{ IP.strokes=[]; redraw(); };
+  window.ipMode=(m,el)=>{ IP.mode=m;
+    [...el.parentNode.querySelectorAll('.ipbtn')].forEach(b=>b.classList.remove('on'));
+    el.classList.add('on'); };
+  window.ipSize=v=>{ IP.size=+v; };
+  IP.strokes=[]; fit();
+  addEventListener('resize', fit, {passive:true});
+}
+
+/* ═══════════════ ГОЛОСОВОЙ ВВОД ═══════════════
+   Владелец: «голосовой ввод везде, где есть ввод. Голосовой даже лучше».
+   Тут браузерный Web Speech API — работает без бэкенда в Chrome/Safari.
+   Где не поддерживается, кнопка не рисуется, ручной ввод остаётся. */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function bindMic(root){
+  if(!SR) return;
+  (root||document).querySelectorAll('textarea,input[type=text]').forEach(el=>{
+    if(el.dataset.mic) return; el.dataset.mic='1';
+    const host=el.parentElement;
+    if(getComputedStyle(host).position==='static') host.classList.add('withmic');
+    const b=document.createElement('span');
+    b.className='mic'; b.title=T('mic','Speak'); b.textContent='🎙';
+    b.onclick=()=>{
+      const r=new SR();
+      r.lang = LANG==='ru' ? 'ru-RU' : LANG==='en' ? 'en-US' : LANG;
+      r.interimResults=true; r.continuous=false;
+      b.classList.add('rec');
+      r.onresult=ev=>{ let s=''; for(const res of ev.results) s+=res[0].transcript;
+        el.value = s; };
+      r.onend=()=>b.classList.remove('rec');
+      r.onerror=()=>b.classList.remove('rec');
+      r.start();
+    };
+    host.appendChild(b);
+  });
+}
+
 function renderPicks(){
   $('picks').innerHTML = FN.map(f=>`
     <button class="pick" onclick="openWork('${f.id}')">
@@ -1306,19 +1868,49 @@ $('mega').onmouseenter=()=>clearTimeout(mt);
 document.querySelector('header').onmouseleave=
   ()=>mt=setTimeout(()=>$('mega').classList.remove('on'),160);
 
-/* ═══════════════ РОУТЕР ═══════════════ */
-const VIEWS=['home','work','profile','pricing','journal'];
-window.go = v => {
-  VIEWS.forEach(x=>$('v-'+x).classList.toggle('hidden',x!==v));
-  /* фильтр витрины принадлежит главной — в рабочем окне это шум */
+/* ═══════════════ РОУТЕР ═══════════════
+   Правило владельца 02.08: выход должен быть на КАЖДОМ экране, всегда.
+   Поэтому один вход render() + история браузера: работают и наша кнопка,
+   и кнопка «назад» в браузере, и свайп на телефоне. */
+const VIEWS=['home','work','profile','pricing','journal','library'];
+const TABMAP={home:0,journal:1,library:3,profile:4};
+
+function render(state, push){
+  const v = state.v || 'home';
+  VIEWS.forEach(x=>$('v-'+x).classList.toggle('hidden', x!==v));
+  /* фильтр витрины принадлежит главной — на других экранах это шум */
   $('filters').classList.toggle('hidden', v!=='home');
   document.querySelectorAll('.tabbar div').forEach(d=>d.classList.remove('on'));
-  const map={home:0,journal:1,pricing:3,profile:4};
-  if(map[v]!==undefined) document.querySelectorAll('.tabbar div')[map[v]].classList.add('on');
+  const ti = TABMAP[v];
+  if(ti!==undefined) document.querySelectorAll('.tabbar div')[ti].classList.add('on');
   $('mega').classList.remove('on');
+  closeSheet();
+  if(v==='work')    buildWork(state.tool || 'sketch');
   if(v==='profile') renderProfile();
+  if(v==='library') renderLibrary();
+  const hash = v==='home' ? '#' : (v==='work' ? '#work/'+(state.tool||'sketch') : '#'+v);
+  if(push) history.pushState(state, '', hash);
+  else     history.replaceState(state, '', hash);
   scrollTo(0,0);
+}
+window.go = v => render({v}, true);
+window.openWork = id => render({v:'work', tool:id}, true);
+/* Единственная кнопка возврата на весь сайт. Если истории нет (открыли
+   ссылку сразу на экран) — уводим на главную, а не в пустоту. */
+window.goBack = () => {
+  if(history.state && history.state.v && history.state.v!=='home' && history.length>1) history.back();
+  else render({v:'home'}, true);
 };
+window.addEventListener('popstate', e => render(e.state || {v:'home'}, false));
+/* Esc закрывает верхний слой, потом уводит назад */
+window.addEventListener('keydown', e => {
+  if(e.key!=='Escape') return;
+  const sh=$('sheet'), vw=$('viewer');
+  if(vw && vw.classList.contains('on')) { closeViewer(); return; }
+  if(sh.classList.contains('on')) { closeSheet(); return; }
+  if($('mega').classList.contains('on')) { $('mega').classList.remove('on'); return; }
+  goBack();
+});
 
 /* ═══════════════ РАБОЧЕЕ ОКНО ═══════════════ */
 /* рамка результата держит пропорцию самого формата — вертикальное
@@ -1327,6 +1919,7 @@ const STAGE_BOX = {
   img34:'aspect-ratio:3/4;max-width:430px',  img43:'aspect-ratio:4/3;max-width:100%',
   vid:'aspect-ratio:9/16;max-width:330px',   sheets:'aspect-ratio:4/3;max-width:100%',
   link:'aspect-ratio:4/3;max-width:100%',    '3d':'aspect-ratio:1;max-width:470px',
+  inpaint:'aspect-ratio:3/4;max-width:460px',
 };
 const boxFor = w => w.stage.k==='img'
   ? (w.stage.ar==='4/3' ? STAGE_BOX.img43 : STAGE_BOX.img34)
@@ -1353,7 +1946,23 @@ const STAGES = {
       <div class="t">${T('st_3d','Drag to spin')}</div></div>
     <div class="slider"><input type="range" min="0" max="360" value="0" id="ang3d">
       <span id="angv">0°</span></div>`,
+  inpaint: ()=>`<div class="ipwrap" id="ipWrap" style="position:absolute;inset:0">
+      <canvas id="inpaintCanvas"></canvas>
+      <div class="iphint"><div><div style="font-size:22px;opacity:.5">✏️</div>
+        <div style="font-weight:600;margin-top:8px">${T('ip_t','Paint over what you want changed')}</div>
+        <div style="opacity:.65;margin-top:4px;max-width:30ch;line-height:1.45">
+          ${T('ip_s','Brush the face, a limb, one flower — then say what to do with it. The rest of the sketch stays untouched.')}</div>
+      </div></div></div>`,
 };
+/* Панель кисти под холстом — только для inpaint */
+const IP_TOOLS = () => `<div class="iptools">
+  <span class="ipbtn on" onclick="ipMode('brush',this)" title="${T('ip_brush','Brush')}">✏️</span>
+  <span class="ipbtn" onclick="ipMode('erase',this)" title="${T('ip_erase','Eraser')}">◻</span>
+  <span class="brush"><span>${T('ip_size','Brush')}</span>
+    <input type="range" min="8" max="90" value="34" oninput="ipSize(this.value)"></span>
+  <span class="ipbtn" onclick="ipUndo()" title="${T('ip_undo','Undo')}">↺</span>
+  <span class="ipbtn" onclick="ipClear()" title="${T('ip_clear','Clear')}">✕</span>
+</div>`;
 
 function field(f,i){
   const l=`<label>${f.l}</label>`;
@@ -1377,13 +1986,15 @@ window.pickChip = el => {
   el.classList.add('on');
 };
 
-window.openWork = id => {
+function buildWork(id){
   const f = FN.find(x=>x.id===id) || FN[0];
   const w = WORK[id] || WORK.sketch;
-  $('wkTitle').textContent = `${f.e} ${T('t_'+id,f.n)}`;
+  CUR_TOOL = id;
+  $('wkTitle').textContent = T('t_'+id, f.n);
   $('wkTag').textContent = T('h_'+id,f.h);
   $('wkStage').style.cssText = boxFor(w);
   $('wkStage').innerHTML = (STAGES[w.stage.k]||STAGES.img)(w.stage);
+  $('wkStageTools').innerHTML = w.stage.k==='inpaint' ? IP_TOOLS() : '';
   $('wkPanel').innerHTML = w.fields.map(field).join('') +
     `<div class="gorow">
        <button class="btn wide big">${T('cta_'+id,w.cta)}
@@ -1403,8 +2014,11 @@ window.openWork = id => {
     const el=document.querySelector('#wkStage .eye');
     if(el) el.style.transform=`rotate(${e.target.value}deg)`;
   };
-  closeSheet(); go('work');
-};
+  const ip=$('inpaintCanvas');
+  if(ip) initInpaint();
+  bindMic();
+}
+let CUR_TOOL='sketch';
 
 /* ═══════════════ КОМАНДНАЯ СТРОКА ═══════════════ */
 let CMD_TOOL='sketch';
@@ -1433,6 +2047,16 @@ const saved=(()=>{try{return localStorage.getItem('lang')}catch(e){return null}}
 $('lang').value = saved||'en';
 setLang(saved||'en');
 $('lang').onchange = e => setLang(e.target.value);
+
+/* Стартовый маршрут из адреса: ссылкой можно открыть сразу нужный экран,
+   и кнопка «назад» браузера с первого шага работает как надо. */
+(function boot(){
+  const h=(location.hash||'').replace(/^#/,'');
+  if(h.startsWith('work/'))      render({v:'work', tool:h.slice(5)}, false);
+  else if(VIEWS.includes(h))     render({v:h}, false);
+  else                           render({v:'home'}, false);
+  bindMic();
+})();
 
 const savedT=(()=>{try{return localStorage.getItem('theme')}catch(e){return null}})();
 if(savedT) document.documentElement.dataset.theme=savedT;
