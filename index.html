@@ -133,7 +133,10 @@ nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
   color:var(--paper);display:grid;place-items:center;font:700 11px 'Inter',sans-serif}
 
 /* ── строка разделов = живой фильтр витрины ────────────── */
-.filters{display:flex;gap:6px;overflow-x:auto;padding:8px 0 9px;
+/* ВНИМАНИЕ: элемент несёт и .wrap, и .filters. Сокращённый padding здесь
+   обнулял боковые поля из .wrap, и строка уезжала в самый край, пока шапка
+   держала 24px. Только padding-top/bottom, иначе сетка снова разъедется. */
+.filters{display:flex;gap:6px;overflow-x:auto;padding-top:8px;padding-bottom:9px;
   scrollbar-width:none;align-items:center}
 .filters::-webkit-scrollbar{display:none}
 .fl{white-space:nowrap;border:1px solid var(--line);background:var(--card);
@@ -185,7 +188,8 @@ nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
 .cmd .sel .cur{color:var(--ink)}
 
 /* ── СЕКЦИИ ────────────────────────────────────────────── */
-.sec{padding:var(--sec) 0 0}
+/* та же ловушка: секция несёт и .wrap, и .sec — только padding-top */
+.sec{padding-top:var(--sec)}
 .sec-hd{display:flex;align-items:baseline;gap:12px;margin-bottom:12px;
   flex-wrap:wrap}
 .sec-hd h2{font-size:19px;text-transform:uppercase}
