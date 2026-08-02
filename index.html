@@ -1263,7 +1263,7 @@ const FN = [
   {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
   {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
-  {id:'light',   e:'💡', cat:'light',  cost:1,  fxk:'sweep',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
+  {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
   {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake',  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
   {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring',   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
   {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo',   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
@@ -1456,12 +1456,15 @@ const WORK = {
             {t:'chips',l:'Take it back as',v:['line work','with shading','full render']}],
     cta:'Build the turnaround', note:'Spin it, then take the angle you need',
     after:['sketch','stencil','tryon','animate']},
-  light:{stage:{k:'img',ar:'4/3'},
-    fields:[{t:'drop',l:'The shot',e:'📷',tt:'Drop the photo in',ss:'A healed tattoo or a fresh one'},
-            {t:'pm',l:'Light',v:[['Soft studio','even, portfolio'],['Hard side','texture and relief'],
-                                 ['Warm evening','skin looks alive'],['Cold neon','story energy']]},
-            {t:'chips',l:'Strength',v:['subtle','normal','strong']}],
-    cta:'Relight', note:'The ink is not touched — only the light around it',
+  /* Единственный инструмент, который считает У НАС и стоит ноль:
+     света нет в облаке, он рисуется прямо в браузере на видеокарте. */
+  light:{stage:{k:'relight'}, live:1,
+    fields:[{t:'drop',l:'Your sketch',e:'🖼',tt:'Drop a sketch in',ss:'Line work reads best. Without a file you get a demo.'},
+            {t:'pm',l:'Light',v:[['From the right','classic relief'],['From above','even, portfolio'],
+                                 ['From the left','mirror of the right'],['Low and hard','texture screams']]},
+            {t:'rng',l:'Relief',id:'rlRelief',min:1,max:14,val:6},
+            {t:'rng',l:'Gloss',id:'rlGloss',min:0,max:150,val:90}],
+    cta:'Spin the light', note:'Runs on your own screen. Costs nothing, no waiting.',
     after:['retouch','animate','link']},
   animate:{stage:{k:'vid'},
     fields:[{t:'drop',l:'Design or photo',e:'🖼',tt:'Drop it in',ss:'A sketch or a shot of the healed piece'},
@@ -1566,8 +1569,12 @@ ru:{
  ip_s:'Закрась лицо, руку, один цветок — и скажи, что с этим сделать. Остальной эскиз останется как был.',
  ip_brush:'Кисть', ip_erase:'Стереть', ip_size:'Кисть',
  ip_undo:'Отменить', ip_clear:'Очистить',
+ rl_t:'Веди пальцем по эскизу',
+ rl_s:'Свет едет за тобой. Толщина штриха становится рельефом.',
+ rl_save:'Сохранить кадр', rl_nogl:'В этом браузере выключен WebGL',
  ip_none:'Сначала закрась область',
- ip_small:'Закрашено слишком мало, чисто перерисовать не выйдет. Возьми кисть шире или закрась больше.',
+ ip_thin:'Тонко, но пройдёт. Шире — надёжнее.',
+ ip_small:'Слишком тонко, чисто перерисовать не выйдет. Возьми кисть шире.',
  ip_big:'Закрашено больше половины эскиза. Проще сделать новый.',
  ip_ok:'Закрашено {p}% листа',
  pr_until:'продлится 28 августа',
@@ -3137,6 +3144,25 @@ function initInpaint(){
      дата, мелкий элемент — это 0.5-1% площади, и человек получал
      «закрась пошире» там, где всё нормально. */
   const MODEL_SIDE = 1024;
+  /* Диаметр наибольшего круга, вписанного в маску (chamfer distance transform,
+     аналог cv2.distanceTransform). Прямой физический аналог того, что
+     переживёт латент. */
+  function thickness(rgba){
+    const w=cv.width, h=cv.height, N=w*h, INF=1e9, dt=new Float32Array(N);
+    /* порог тот же, что в measure(): кисть кладёт альфу ~115 (прозрачность
+       .45), поэтому >127 обнулял бы КАЖДЫЙ мазок и толщина всегда была 0 */
+    for(let k=0;k<N;k++) dt[k] = rgba[k*4+3]>8 ? INF : 0;
+    for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=y*w+x; if(!dt[k])continue; let m=dt[k];
+      if(x>0)m=Math.min(m,dt[k-1]+1); if(y>0)m=Math.min(m,dt[k-w]+1);
+      if(x>0&&y>0)m=Math.min(m,dt[k-w-1]+1.41421);
+      if(x<w-1&&y>0)m=Math.min(m,dt[k-w+1]+1.41421); dt[k]=m;}
+    let mx=0;
+    for(let y=h-1;y>=0;y--)for(let x=w-1;x>=0;x--){const k=y*w+x; if(!dt[k])continue; let m=dt[k];
+      if(x<w-1)m=Math.min(m,dt[k+1]+1); if(y<h-1)m=Math.min(m,dt[k+w]+1);
+      if(x<w-1&&y<h-1)m=Math.min(m,dt[k+w+1]+1.41421);
+      if(x>0&&y<h-1)m=Math.min(m,dt[k+w-1]+1.41421); dt[k]=m; if(m>mx)mx=m;}
+    return 2*mx;
+  }
   const BRUSH_FLOOR = () => Math.max(8,
     Math.ceil(0.012 * Math.min(cv.width, cv.height) / devicePixelRatio));
   function measure(){
@@ -3151,15 +3177,26 @@ function initInpaint(){
     const bboxMin = maxX<0 ? 0 : Math.min(maxX-minX, maxY-minY)*scale;
     IP.stats = {coverage:cov, bbox: maxX<0?null:{x:minX,y:minY,w:maxX-minX,h:maxY-minY},
                 min_side_px: Math.round(bboxMin)};
+    /* ВПИСАННАЯ ТОЛЩИНА, а не площадь и не bbox (формула движка 02.08):
+       длинная тонкая линия даёт большой bbox при толщине 6px и всё равно
+       не переживёт латент. Считаем диаметр наибольшего вписанного круга
+       и приводим к МОДЕЛЬНОМУ разрешению через масштаб кропа.
+       coverage не является причиной отказа НИ ПРИ КАКОМ значении. */
+    IP.stats.thickness_px = maxX<0 ? 0 : thickness(d) * (MODEL_SIDE/Math.min(cv.width,cv.height));
     const btn=document.querySelector('#wkPanel .btn.wide'), note=$('ipNote');
-    /* отказ только по площади и по физическому пределу модели */
-    const tooSmall = !painted || cov < 0.005 || bboxMin < 24;
+    const REFUSE=12, WARN=20;
+    const tooSmall = !painted || IP.stats.thickness_px < REFUSE;
     const tooBig   = cov > 0.55;
     if(btn){ btn.disabled = tooSmall || tooBig; btn.style.opacity = btn.disabled?.45:''; }
+    /* средний уровень: предупреждаем, но НЕ блокируем — человек вправе
+       продолжить, инженерное ограничение не должно становиться запретом */
+    const thin = !tooSmall && IP.stats.thickness_px < WARN;
     if(note) note.textContent = !painted ? T('ip_none','Paint the area first')
-      : tooSmall ? T('ip_small','Too thin to redraw cleanly. Widen the brush or cover a bit more.')
+      : tooSmall ? T('ip_small','Too thin to redraw cleanly. Widen the brush.')
       : tooBig   ? T('ip_big','More than half the sketch is painted. Better to make a new one.')
+      : thin     ? T('ip_thin','Thin, but it will go. Wider is safer.')
       : T('ip_ok','Painted {p}% of the sheet').replace('{p}',(cov*100).toFixed(1));
+    if(note) note.style.color = thin ? 'var(--lime-deep)' : '';
   }
   /* МАСКА НА СЕРВЕР НЕ УХОДИТ. Раз масочных моделей в каталоге нет, путь
      кроп-композитный: движку летят только КРОП и промпт, а маска, растушёвка
@@ -3194,7 +3231,8 @@ function initInpaint(){
       send:{width:q(w), height:q(h)},              // что реально уедет движку
       source:{width:cv.width, height:cv.height},   // база композита = оригинал
       model_scale:scale,                           // чтобы гейт считал в РАЗРЕШЕНИИ МОДЕЛИ
-      min_side_px_model: IP.stats.min_side_px,     // уже приведён к модельному
+      thickness_px_model: IP.stats.thickness_px,   // вписанная толщина в модельном
+      min_side_px_model: IP.stats.min_side_px,     // bbox, справочно
       coverage: IP.stats.coverage,
       brush:{px:IP.size, floor_px:BRUSH_FLOOR(), strokes:IP.strokes.length},
       note:'маска на сервер не уходит; композит и растушёвка на клиенте',
@@ -3218,6 +3256,146 @@ function initInpaint(){
   IP.strokes=[]; fit();
   addEventListener('resize', fit, {passive:true});
 }
+
+/* ═══════════════ СВЕТ ВОКРУГ ЭСКИЗА ═══════════════
+   Порт relight_engine.py (самотест 6/6) в WebGL. Нормали считаются ОДИН раз
+   при загрузке, каждый кадр — только скалярные произведения в шейдере.
+   Ноль вызовов движка: кадр стоит $0 против $0.42 за генеративный ролик. */
+const RL = {az:45, elev:35, gloss:.9, relief:6, gl:null, spin:null, img:null};
+const RL_VS='attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}';
+const RL_FS=['precision mediump float;','uniform sampler2D uSrc,uNrm;uniform vec3 uL;',
+ 'uniform float uAmb,uDif,uSpec,uShin;varying vec2 v;','void main(){',
+ ' vec4 n4=texture2D(uNrm,v); vec3 n=normalize(n4.rgb*2.0-1.0); float pres=n4.a;',
+ ' vec3 src=texture2D(uSrc,v).rgb; vec3 H=normalize(uL+vec3(0.,0.,1.));',
+ ' float lam=uAmb+uDif*max(dot(n,uL),0.0);',
+ ' float hl=uSpec*pow(max(dot(n,H),0.0),uShin)*pres;',
+ ' gl_FragColor=vec4(mix(src,src*lam+vec3(hl),pres),1.0);}'].join('\n');
+
+function rlBlur(a,w,h,r){ const t=new Float32Array(a.length),o=new Float32Array(a.length);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0,n=0;
+    for(let i=-r;i<=r;i++){const xx=x+i; if(xx>=0&&xx<w){s+=a[y*w+xx];n++;}} t[y*w+x]=s/n;}
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){let s=0,n=0;
+    for(let i=-r;i<=r;i++){const yy=y+i; if(yy>=0&&yy<h){s+=t[yy*w+x];n++;}} o[y*w+x]=s/n;}
+  return o; }
+
+function rlMaps(img, strength){
+  const MAX=1024, sc=Math.min(1,MAX/Math.max(img.width,img.height));
+  const w=Math.max(2,Math.round(img.width*sc)), h=Math.max(2,Math.round(img.height*sc));
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  const cx=c.getContext('2d'); cx.drawImage(img,0,0,w,h);
+  const px=cx.getImageData(0,0,w,h), d=px.data, N=w*h;
+  /* уровень бумаги = медиана 4%-рамки, та же формула, что на сервере */
+  const b=Math.max(2,Math.round(.04*Math.min(w,h))), border=[];
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)
+    if(x<b||y<b||x>=w-b||y>=h-b){const i=(y*w+x)*4;
+      border.push((d[i]*.299+d[i+1]*.587+d[i+2]*.114)/255);}
+  border.sort((a,z)=>a-z);
+  const paper=border[border.length>>1]||1, thr=Math.min(Math.max(1-paper+.03,.05),.35);
+  const ink=new Float32Array(N);
+  for(let k=0;k<N;k++){const j=k*4, lum=(d[j]*.299+d[j+1]*.587+d[j+2]*.114)/255;
+    ink[k]=Math.max(0,Math.min(1,(1-lum-thr)/Math.max(1-thr,1e-6)));}
+  /* chamfer distance transform внутри чернил — аналог cv2.distanceTransform */
+  const INF=1e9, dt=new Float32Array(N);
+  for(let k=0;k<N;k++) dt[k]= ink[k]>.35 ? INF : 0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=y*w+x; if(!dt[k])continue; let m=dt[k];
+    if(x>0)m=Math.min(m,dt[k-1]+1); if(y>0)m=Math.min(m,dt[k-w]+1);
+    if(x>0&&y>0)m=Math.min(m,dt[k-w-1]+1.41421);
+    if(x<w-1&&y>0)m=Math.min(m,dt[k-w+1]+1.41421); dt[k]=m;}
+  for(let y=h-1;y>=0;y--)for(let x=w-1;x>=0;x--){const k=y*w+x; if(!dt[k])continue; let m=dt[k];
+    if(x<w-1)m=Math.min(m,dt[k+1]+1); if(y<h-1)m=Math.min(m,dt[k+w]+1);
+    if(x<w-1&&y<h-1)m=Math.min(m,dt[k+w+1]+1.41421);
+    if(x>0&&y<h-1)m=Math.min(m,dt[k+w-1]+1.41421); dt[k]=m;}
+  const relief=Math.max(3,.006*Math.min(w,h)); let hgt=new Float32Array(N);
+  for(let k=0;k<N;k++) hgt[k]=Math.sqrt(Math.min(1,dt[k]/relief))*ink[k];
+  hgt=rlBlur(hgt,w,h,2);
+  const pres=rlBlur(ink,w,h,2);
+  for(let k=0;k<N;k++) pres[k]=Math.min(1,pres[k]*3);
+  const out=new Uint8Array(N*4);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const k=y*w+x;
+    const xl=hgt[y*w+Math.max(0,x-1)], xr=hgt[y*w+Math.min(w-1,x+1)];
+    const yu=hgt[Math.max(0,y-1)*w+x], yd=hgt[Math.min(h-1,y+1)*w+x];
+    const nx=-(xr-xl)*strength, ny=-(yd-yu)*strength, L=Math.sqrt(nx*nx+ny*ny+1)||1;
+    out[k*4]=Math.round((nx/L*.5+.5)*255); out[k*4+1]=Math.round((ny/L*.5+.5)*255);
+    out[k*4+2]=Math.round((1/L*.5+.5)*255); out[k*4+3]=Math.round(pres[k]*255);}
+  return {w,h,src:px,nrm:out};
+}
+
+function initRelight(){
+  const cv=$('rlCanvas'); if(!cv) return;
+  const gl=cv.getContext('webgl')||cv.getContext('experimental-webgl');
+  if(!gl){ const hint=$('rlHint'); if(hint) hint.querySelector('.t').textContent=
+    T('rl_nogl','WebGL is off in this browser'); return; }
+  const sh=(t,s)=>{const x=gl.createShader(t); gl.shaderSource(x,s); gl.compileShader(x); return x;};
+  const prog=gl.createProgram();
+  gl.attachShader(prog,sh(gl.VERTEX_SHADER,RL_VS));
+  gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,RL_FS));
+  gl.linkProgram(prog); gl.useProgram(prog);
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+  const loc=gl.getAttribLocation(prog,'p');
+  gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  const U=n=>gl.getUniformLocation(prog,n);
+  const uL=U('uL'),uAmb=U('uAmb'),uDif=U('uDif'),uSpec=U('uSpec'),uShin=U('uShin');
+  gl.uniform1i(U('uSrc'),0); gl.uniform1i(U('uNrm'),1);
+  let tS,tN;
+  const params=()=>{ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR); };
+  function upload(m){
+    cv.width=m.w; cv.height=m.h; gl.viewport(0,0,m.w,m.h);
+    if(!tS){tS=gl.createTexture(); tN=gl.createTexture();}
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,tS);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,m.src); params();
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D,tN);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,m.w,m.h,0,gl.RGBA,gl.UNSIGNED_BYTE,m.nrm); params();
+    draw();
+  }
+  function draw(){
+    const az=RL.az*Math.PI/180, el=RL.elev*Math.PI/180;
+    const lx=Math.cos(az)*Math.cos(el), ly=-Math.sin(az)*Math.cos(el), lz=Math.sin(el);
+    const n=Math.sqrt(lx*lx+ly*ly+lz*lz)||1;
+    gl.uniform3f(uL,lx/n,ly/n,lz/n);
+    gl.uniform1f(uAmb,.55); gl.uniform1f(uDif,.75);
+    gl.uniform1f(uSpec,RL.gloss); gl.uniform1f(uShin,28);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }
+  RL.draw=draw; RL.reload=()=>{ if(RL.img) upload(rlMaps(RL.img,RL.relief)); };
+  let drag=false;
+  const move=e=>{ const r=cv.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width*2-1, y=(e.clientY-r.top)/r.height*2-1;
+    RL.az=Math.atan2(-y,x)*180/Math.PI;
+    RL.elev=Math.max(8, 80-Math.min(1,Math.hypot(x,y))*70);
+    const hint=$('rlHint'); if(hint) hint.style.display='none';
+    draw(); };
+  cv.onpointerdown=e=>{drag=true; cv.setPointerCapture(e.pointerId); cv.style.cursor='grabbing'; move(e);};
+  cv.onpointermove=e=>{ if(drag) move(e); };
+  cv.onpointerup=cv.onpointercancel=()=>{drag=false; cv.style.cursor='grab';};
+  /* демо-эскиз, чтобы окно не было пустым до загрузки файла */
+  const c=document.createElement('canvas'); c.width=c.height=560;
+  const x=c.getContext('2d'); x.fillStyle='#fafafa'; x.fillRect(0,0,560,560);
+  x.strokeStyle='#141414'; x.lineCap='round';
+  x.lineWidth=7; x.beginPath(); x.arc(280,280,190,0,6.284); x.stroke();
+  x.lineWidth=3; x.beginPath(); x.arc(280,280,146,0,6.284); x.stroke();
+  for(let k=0;k<12;k++){const a=k*Math.PI/6; x.lineWidth=k%2?2:5;
+    x.beginPath(); x.moveTo(280+56*Math.cos(a),280+56*Math.sin(a));
+    x.lineTo(280+168*Math.cos(a),280+168*Math.sin(a)); x.stroke();}
+  x.fillStyle='#141414'; x.beginPath(); x.arc(280,280,45,0,6.284); x.fill();
+  const im=new Image();
+  im.onload=()=>{ RL.img=im; upload(rlMaps(im,RL.relief)); };
+  im.src=c.toDataURL();
+}
+/* пресеты света из панели справа */
+window.rlPreset=(az,el,gloss)=>{ RL.az=az; RL.elev=el; if(gloss!=null) RL.gloss=gloss;
+  const h=$('rlHint'); if(h) h.style.display='none'; if(RL.draw) RL.draw(); };
+window.rlSpin=(btn)=>{
+  if(RL.spin){ clearInterval(RL.spin); RL.spin=null; if(btn) btn.classList.remove('on'); return; }
+  if(btn) btn.classList.add('on');
+  const h=$('rlHint'); if(h) h.style.display='none';
+  RL.spin=setInterval(()=>{ RL.az=(RL.az+4)%360; if(RL.draw) RL.draw(); },40);
+};
+window.rlSave=()=>{ const cv=$('rlCanvas'); if(!cv) return;
+  const a=document.createElement('a'); a.download='relight.png'; a.href=cv.toDataURL('image/png'); a.click(); };
 
 /* ═══════════════ ГОЛОСОВОЙ ВВОД ═══════════════
    Владелец: «голосовой ввод везде, где есть ввод. Голосовой даже лучше».
@@ -3344,6 +3522,7 @@ const STAGE_BOX = {
   vid:'aspect-ratio:9/16;max-width:330px',   sheets:'aspect-ratio:4/3;max-width:100%',
   link:'aspect-ratio:4/3;max-width:100%',    '3d':'aspect-ratio:1;max-width:470px',
   inpaint:'aspect-ratio:3/4;max-width:460px',
+  relight:'aspect-ratio:1;max-width:520px',
 };
 const boxFor = w => w.stage.k==='img'
   ? (w.stage.ar==='4/3' ? STAGE_BOX.img43 : STAGE_BOX.img34)
@@ -3370,6 +3549,14 @@ const STAGES = {
       <div class="t">${T('st_3d','Drag to spin')}</div></div>
     <div class="slider"><input type="range" min="0" max="360" value="0" id="ang3d">
       <span id="angv">0°</span></div>`,
+  /* НАСТОЯЩАЯ функция, а не заглушка: толщина штриха → карта высот →
+     псевдо-нормали → Ламберт с бликом. Ноль вызовов движка, ноль долларов,
+     60 fps. Математика идентична relight_engine.py (самотест 6/6). */
+  relight: ()=>`<canvas id="rlCanvas" style="position:absolute;inset:0;width:100%;
+      height:100%;display:block;touch-action:none;cursor:grab"></canvas>
+    <div class="empty" id="rlHint" style="z-index:5;pointer-events:none">
+      <div class="t">${T('rl_t','Drag across the sketch')}</div>
+      <div class="s">${T('rl_s','The light follows your finger. Line thickness becomes relief.')}</div></div>`,
   inpaint: ()=>`<div class="ipwrap" id="ipWrap" style="position:absolute;inset:0">
       <canvas id="inpaintCanvas"></canvas>
       <div class="iphint"><div><div style="font-size:22px;opacity:.5">✏️</div>
@@ -3402,6 +3589,8 @@ function field(f,i){
   if(f.t==='pm') return `<div class="fld">${l}<div class="presetmini">${
     f.v.map(([n,h],j)=>`<div class="pm${j===0?' on':''}" onclick="pickChip(this)">
       <div class="n">${n}</div><div class="h">${h}</div></div>`).join('')}</div></div>`;
+  if(f.t==='rng') return `<div class="fld">${l}<input type="range" id="${f.id}"
+    min="${f.min}" max="${f.max}" value="${f.val}" style="width:100%"></div>`;
   if(f.t==='drop') return `<div class="fld">${l}<div class="drop">
     <div class="e">${f.e}</div><div class="t">${f.tt}</div><div class="s">${f.ss}</div></div></div>`;
   return '';
@@ -3441,6 +3630,22 @@ function buildWork(id){
   };
   const ip=$('inpaintCanvas');
   if(ip) initInpaint();
+  /* Свет считается у нас, поэтому кнопка не «отправляет», а крутит.
+     Кредиты за него не берём: кадр стоит ноль. */
+  if($('rlCanvas')){
+    initRelight();
+    const P=[[0,35],[90,55],[180,35],[25,14]];
+    document.querySelectorAll('#wkPanel .pm').forEach((el,i)=>{
+      el.addEventListener('click',()=>{ const [a,e]=P[i]||P[0]; rlPreset(a,e); });
+    });
+    const rr=$('rlRelief'), rg=$('rlGloss');
+    if(rr) rr.oninput=e=>{ RL.relief=+e.target.value; RL.reload&&RL.reload(); };
+    if(rg) rg.oninput=e=>{ RL.gloss=e.target.value/100; RL.draw&&RL.draw(); };
+    const go=document.querySelector('#wkPanel .btn.wide');
+    if(go){ go.onclick=()=>rlSpin(go); }
+    $('wkAfter').insertAdjacentHTML('beforeend',
+      `<span class="pill" onclick="rlSave()">⬇️ ${T('rl_save','Save this frame')}</span>`);
+  }
   bindMic();
 }
 let CUR_TOOL='sketch';
