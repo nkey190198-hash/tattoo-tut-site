@@ -101,8 +101,11 @@ nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
   margin-left:6px;vertical-align:2px;border:3px solid transparent;
   border-top-color:currentColor;opacity:.45}
 
-/* правый угол: настройки — отдельно, личное — одной группой */
-.hd .right{display:flex;align-items:center;gap:14px;flex:none}
+/* Правый угол: настройки отдельно, личное одной группой.
+   margin-left:auto — САМ держит группу у правого края. Раньше её прижимало
+   меню с flex:1, и ниже 1100px, где меню скрыто, распорка пропадала:
+   профиль с кредитами сваливался к логотипу, справа зияло 587px пустоты. */
+.hd .right{display:flex;align-items:center;gap:14px;flex:none;margin-left:auto}
 .util{display:flex;align-items:center;gap:6px}
 .ic-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);
   background:var(--card);display:grid;place-items:center;font-size:13px;
@@ -111,7 +114,9 @@ nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
 .langwrap{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);
   background:var(--card);border-radius:8px;padding:0 8px;height:30px}
 .lang{font-weight:600;font-size:12.5px;background:transparent;border:0;outline:0;
-  cursor:pointer;-webkit-appearance:none;appearance:none}
+  cursor:pointer;-webkit-appearance:none;appearance:none;
+  max-width:104px;text-overflow:ellipsis}
+@media(max-width:520px){.lang{max-width:64px}}
 .me{display:flex;align-items:center;gap:8px;border:1px solid var(--line);
   background:var(--card);border-radius:22px;padding:3px 3px 3px 12px}
 .me .signin{font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;
@@ -963,12 +968,18 @@ html{scrollbar-gutter:stable}
     <nav class="main" id="mainnav"></nav>
     <div class="right">
       <div class="util">
+        <!-- языки по алфавиту, названия на самом языке (заказ владельца 02.08) -->
         <span class="langwrap"><select class="lang" id="lang">
-          <option value="en">EN</option><option value="ru">RU</option>
-          <option value="de">DE</option><option value="fr">FR</option>
-          <option value="es">ES</option><option value="it">IT</option>
-          <option value="pl">PL</option><option value="cs">CS</option>
-          <option value="nl">NL</option><option value="pt">PT</option>
+          <option value="cs">Čeština</option>
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="it">Italiano</option>
+          <option value="nl">Nederlands</option>
+          <option value="pl">Polski</option>
+          <option value="pt">Português (BR)</option>
+          <option value="ru">Русский</option>
         </select></span>
         <span class="ic-btn" id="theme" title="Theme">◐</span>
       </div>
@@ -1495,6 +1506,45 @@ ru:{
  tab_home:'Главная', tab_jrn:'Журнал', tab_pl:'Тарифы', tab_me:'Профиль',
  tab_lib:'Работы', tab_gen:'Сделать', mic:'Сказать голосом',
 
+ /* ── журнал: заголовок · подводка · крючок на инструмент ─ */
+ jsec_0:'Интервью', jsec_1:'Тату-мир', jsec_2:'Ремесло и обучение',
+ jt_j00:'Драга Павлик: линия, которая растёт как растение',
+ jd_j00:'Органический файнлайн из Дании. Глубинная экология, фигурное катание и как остаться человеком в работе.',
+ jh_j00:'Попробовать этот стиль →',
+ jt_j01:'В работе: мастер №2',
+ jd_j01:'Стиль, метод работы и та часть, которую не выкладывают в инстаграм.',
+ jh_j01:'Скоро',
+ jt_j10:'Что клиенты реально просят в этом сезоне',
+ jd_j10:'Файнлайн держится, орнамент лезет вверх, цвет возвращается на мелких работах.',
+ jh_j10:'Нарисовать такой →',
+ jt_j11:'Сообщение, которое превращается в запись',
+ jd_j11:'Как выглядит переписка, когда клиент уже увидел работу на своей руке.',
+ jh_j11:'Отправить ссылку →',
+ jt_j12:'Почему половина заявок замолкает',
+ jd_j12:'Разрыв между «сколько стоит» и «когда запишешь», и что его закрывает.',
+ jh_j12:'Отправить ссылку →',
+ jt_j13:'Инстаграм перестал показывать твои работы',
+ jd_j13:'Что мастера пробуют вместо него и что из этого выживает в реальной неделе.',
+ jh_j13:'Сделать ролик →',
+ jt_j14:'Цена за час или за работу',
+ jd_j14:'Что первым меняли мастера, которые ушли в премиум, и чего это стоило.',
+ jh_j14:'Собрать палитру →',
+ jt_j20:'Трафареты, которые доживают до конца сеанса',
+ jd_j20:'Толщина линии, контраст и бумага. Почему трафарет умирает на середине.',
+ jh_j20:'Сделать трафарет →',
+ jt_j21:'Размер спины без гадания',
+ jd_j21:'Сантиметры против реальных зон тела и как разложить на A4, не потеряв край.',
+ jh_j21:'Открыть раскрой →',
+ jt_j22:'Продать идею до машинки',
+ jd_j22:'Пятисекундный ролик делает то, чего не сделали три абзаца объяснений.',
+ jh_j22:'Оживить →',
+ jt_j23:'Посадка на изгибе',
+ jd_j23:'Работа, ровная на бумаге, ломается на бицепсе. Как поймать это до трафарета.',
+ jh_j23:'Примерить на тело →',
+ jt_j24:'Съёмка свежей работы',
+ jd_j24:'Краснота, блики и баланс белого в телефоне. Три вещи, которые убивают кадр.',
+ jh_j24:'Улучшить фото →',
+
  /* ── библиотека и просмотрщик ──────────────────────────── */
  lt_all:'Все', lt_sketch:'Эскизы', lt_body:'На теле', lt_video:'Видео',
  lt_upload:'Загруженное', lt_fav:'Избранное',
@@ -1780,14 +1830,17 @@ function renderFeed(){
   }).join('');
 }
 
+/* у каждой карточки журнала свой ключ, иначе они рендерились мимо словаря
+   и оставались английскими при выбранном русском */
+JOURNAL.forEach((g,gi)=>g.items.forEach((it,ii)=>{ it.k = 'j'+gi+ii; }));
 function jcards(items){
   return items.map(it=>{
     const act = it.href ? `onclick="window.open('${it.href}','_blank','noopener')"`
               : it.go ? `onclick="openWork('${it.go}')"` : '';
     return `<article class="jcard" ${act}>
       <div class="media">${fx(it.fxk)}</div>
-      <div class="b"><h4>${it.t}</h4><p>${it.d}</p>
-        <div class="hook">${it.hook||''} <span></span></div></div>
+      <div class="b"><h4>${T('jt_'+it.k,it.t)}</h4><p>${T('jd_'+it.k,it.d)}</p>
+        <div class="hook">${it.hook?T('jh_'+it.k,it.hook):''} <span></span></div></div>
     </article>`;
   }).join('');
 }
@@ -1795,8 +1848,8 @@ function renderJournal(){
   $('journalHome').innerHTML = jcards(
     [JOURNAL[0].items[0], JOURNAL[1].items[0], JOURNAL[1].items[3],
      JOURNAL[2].items[0], JOURNAL[2].items[2]]);
-  $('journalFull').innerHTML = JOURNAL.map(g=>`
-    <div class="sec"><div class="sec-hd"><h2>${g.sec}</h2></div>
+  $('journalFull').innerHTML = JOURNAL.map((g,gi)=>`
+    <div class="sec"><div class="sec-hd"><h2>${T('jsec_'+gi,g.sec)}</h2></div>
       <div class="jrn">${jcards(g.items)}</div></div>`).join('');
 }
 
