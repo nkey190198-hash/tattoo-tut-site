@@ -739,7 +739,18 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 
 /* ── ЕДИНАЯ ПОЛОСА ВОЗВРАТА (есть на КАЖДОМ экране) ──────
    Липкая: на длинном экране выход не должен уезжать вверх. */
-.scrbar,.wkbar{position:sticky;top:var(--nav);z-index:55;
+/* Владелец 03.08 на телефоне: «за мной ездит плашка, между ними появляется
+   просвет, выглядит как будто мы сломались».
+   Причина замерена, их две:
+   1) --nav объявлен 56px, а шапка РЕАЛЬНО 57px — вторая плашка липла на
+      пиксель выше, чем кончается первая, и в зазор при инерционной прокрутке
+      проскакивало содержимое;
+   2) обе плашки полупрозрачные (0.9 / 0.92) с размытием — сквозь щель видно
+      именно ЕДУЩИЙ контент, поэтому шов читается как поломка.
+   Лечим оба: --nav теперь считается с живой шапки (см. syncNav), а плашка
+   липнет на пиксель ВЫШЕ стыка. Перекрытие в 1px глазу незаметно, зазор —
+   заметен всегда. */
+.scrbar,.wkbar{position:sticky;top:calc(var(--nav) - 1px);z-index:55;
   background:color-mix(in srgb,var(--paper) 92%,transparent);
   backdrop-filter:saturate(1.4) blur(12px)}
 .scrbar{display:flex;align-items:center;gap:14px;padding:14px 0 10px}
@@ -3094,6 +3105,38 @@ ru:{
 }
 };
 let LANG = 'en';
+/* --nav держим равным ЖИВОЙ высоте верхнего ряда шапки: захардкоженное число
+   разъезжается от шрифта, языка и масштаба (у владельца было 56 против 57).
+
+   🔴 ГРАБЛИ, на которые я наступил и оставляю здесь предупреждение:
+   мерить ВСЮ <header> нельзя — внутри неё живёт список языков, и пока он не
+   свёрнут, высота уходит в тысячи пикселей. Первая версия звала syncNav ещё
+   во время разбора страницы, записала --nav = 3126px, это раздуло вёрстку,
+   ResizeObserver увидел раздутое и закрепил — петля обратной связи, страница
+   больше не восстанавливалась.
+   Поэтому здесь ДВЕ защиты, и снимать их нельзя:
+   1) меряем только верхний ряд .hd, а не всю шапку;
+   2) ОГРАНИЧИТЕЛЬ: значение вне 40..120px не применяется вовсе. Плохой замер
+      теперь физически не может испортить страницу — в худшем случае остаётся
+      значение из CSS. */
+const NAV_MIN = 40, NAV_MAX = 120;
+function syncNav(){
+  const row = document.querySelector('header .hd') || document.querySelector('header');
+  if(!row) return;
+  const px = Math.round(row.getBoundingClientRect().height);
+  if(px < NAV_MIN || px > NAV_MAX) return;   // ограничитель, см. выше
+  document.documentElement.style.setProperty('--nav', px + 'px');
+}
+addEventListener('load', () => {
+  syncNav();
+  if (typeof ResizeObserver !== 'undefined') {
+    const row = document.querySelector('header .hd');
+    if (row) new ResizeObserver(syncNav).observe(row);
+  }
+});
+addEventListener('orientationchange', syncNav);
+addEventListener('resize', syncNav);
+
 const T = (k,fb) => (DICT[LANG] && DICT[LANG][k] !== undefined) ? DICT[LANG][k] : fb;
 
 /* ═══════════════ ОТРИСОВКА ═══════════════ */
