@@ -393,6 +393,29 @@ nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
 .drop .e{font-size:19px;opacity:.6}
 .drop .t{font-size:12.5px;font-weight:600;margin-top:5px}
 .drop .s{font-size:11px;color:var(--ink-3);margin-top:2px}
+/* ── ЗАГРУЗКА ФАЙЛА ────────────────────────────────────────
+   Владелец 03.08: «непонятно как это работает и непонятно как загружать».
+   Так и было: на сайте не существовало НИ ОДНОГО <input type="file"> —
+   зона «Drop the sketch in» была картинкой кнопки и не делала ничего.
+   Теперь три пути в одну зону: тап (родное меню телефона даёт
+   «Медиатека / Снять фото / Файлы»), перетаскивание, вставка из буфера. */
+.drop:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.drop.over{border-color:var(--lime);background:var(--raise-2,var(--raise));
+  border-style:solid}
+.drop .s2{font-size:10.5px;color:var(--ink-3);margin-top:6px;opacity:.75}
+.drop.err{border-color:#e0564a}
+.drop .derr{font-size:11px;color:#e0564a;margin-top:6px;font-weight:600}
+.dp{display:flex;align-items:center;gap:10px;text-align:left}
+.dp img{width:54px;height:54px;object-fit:cover;border-radius:8px;
+  background:#fff;flex:0 0 54px}
+.dpi{min-width:0;flex:1}
+.dpi b{display:block;font-size:12px;font-weight:600;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.dpi span{font-size:10.5px;color:var(--ink-3)}
+.dpx{border:1px solid var(--line);background:var(--raise);color:inherit;
+  border-radius:8px;width:28px;height:28px;cursor:pointer;flex:0 0 28px;
+  font-size:13px;line-height:1}
+.dpx:hover{border-color:#e0564a;color:#e0564a}
 .presetmini{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
 .pm{border:1px solid var(--line);border-radius:8px;padding:8px;cursor:pointer;
   background:var(--raise);transition:.14s}
@@ -1749,6 +1772,11 @@ ru:{
  pay_h:'Оплата', pay_per:'в месяц', pay_go:'Оплатить',
  pay_about:'примерно {r} ₽ по текущему курсу',
  pay_soon:'Оплата включится на запуске',
+ up_ways:'Нажми и выбери · перетащи · или вставь из буфера',
+ up_aria:'Выбрать файл', up_clear:'Убрать',
+ up_e_type:'Это не картинка. Нужен PNG, JPG или WEBP.',
+ up_e_big:'Слишком тяжёлый — {n} МБ. Предел 20 МБ.',
+ up_e_read:'Не удалось прочитать файл. Попробуй другой.',
  pay_fine:'Платежи проводит Робокасса. Цена входа остаётся твоей, пока идёт подписка. Отменить можно в любой момент из профиля.',
  pm_card:'Карта', pmh_card:'Visa · Mastercard · Мир',
  pm_sbp:'СБП', pmh_sbp:'Мгновенно, по России',
@@ -3950,10 +3978,110 @@ function field(f,i){
   if(f.t==='styles') return `<div class="fld">${l}${stylesHTML()}</div>`;
   if(f.t==='rng') return `<div class="fld">${l}<input type="range" id="${f.id}"
     min="${f.min}" max="${f.max}" value="${f.val}" style="width:100%"></div>`;
-  if(f.t==='drop') return `<div class="fld">${l}<div class="drop">
-    <div class="e">${f.e}</div><div class="t">${f.tt}</div><div class="s">${f.ss}</div></div></div>`;
+  if(f.t==='drop') return `<div class="fld">${l}<div class="drop" id="drop${i}"
+      tabindex="0" role="button" aria-label="${T('up_aria','Choose a file')}">
+    <input type="file" accept="image/*" hidden>
+    <div class="dz">
+      <div class="e">${f.e}</div><div class="t">${f.tt}</div>
+      <div class="s">${f.ss}</div>
+      <div class="s2">${T('up_ways','Tap to choose · drag in · or paste')}</div>
+    </div>
+    <div class="dp" hidden><img alt=""><div class="dpi"><b></b><span></span></div>
+      <button class="dpx" type="button" aria-label="${T('up_clear','Remove')}">\u2715</button></div>
+  </div></div>`;
   return '';
 }
+/* ══════════ ЗАГРУЗКА ФАЙЛА В РАБОЧЕЕ ОКНО ══════════
+   Один и тот же файл принимается ТРЕМЯ путями, потому что люди приходят
+   с разных устройств: тап (на телефоне открывается родное меню —
+   «Медиатека / Снять фото / Файлы»), перетаскивание мышью, вставка из
+   буфера (мастер копирует картинку из переписки и жмёт Cmd+V).
+   Ошибку показываем НА МЕСТЕ и словами: не тот тип, слишком тяжёлый. */
+const UP_MAX_MB = 20;
+let UP_PASTE_BOUND = false;
+
+function upShowErr(zone, msg){
+  zone.classList.add('err');
+  let e = zone.querySelector('.derr');
+  if(!e){ e = document.createElement('div'); e.className='derr';
+          zone.querySelector('.dz').appendChild(e); }
+  e.textContent = msg;
+}
+function upClearErr(zone){
+  zone.classList.remove('err');
+  const e = zone.querySelector('.derr'); if(e) e.remove();
+}
+function upAccept(zone, file){
+  if(!file) return;
+  upClearErr(zone);
+  if(!/^image\//.test(file.type||'')){
+    upShowErr(zone, T('up_e_type','That is not an image. PNG, JPG or WEBP.')); return; }
+  const mb = file.size/1048576;
+  if(mb > UP_MAX_MB){
+    upShowErr(zone, T('up_e_big','Too heavy — {n} MB. The limit is 20 MB.')
+      .replace('{n}', mb.toFixed(1))); return; }
+  const fr = new FileReader();
+  fr.onerror = () => upShowErr(zone, T('up_e_read','Could not read the file. Try another one.'));
+  fr.onload = ev => {
+    const url = ev.target.result;
+    const dz = zone.querySelector('.dz'), dp = zone.querySelector('.dp');
+    dp.querySelector('img').src = url;
+    dp.querySelector('b').textContent = file.name || 'image';
+    dp.querySelector('span').textContent =
+      (mb < 1 ? (file.size/1024).toFixed(0)+' KB' : mb.toFixed(1)+' MB');
+    dz.hidden = true; dp.hidden = false;
+    zone.dataset.filled = '1';
+    /* Человек должен УВИДЕТЬ, что его работа принята — не только имя файла.
+       Поэтому картинка сразу встаёт в большое окно результата. */
+    const stage = $('wkStage');
+    if(stage) stage.innerHTML =
+      `<img src="${url}" alt="" style="position:absolute;inset:0;width:100%;
+        height:100%;object-fit:contain;background:#fff">`;
+  };
+  fr.readAsDataURL(file);
+}
+function upClear(zone){
+  const inp = zone.querySelector('input[type=file]');
+  if(inp) inp.value = '';
+  zone.querySelector('.dz').hidden = false;
+  zone.querySelector('.dp').hidden = true;
+  zone.removeAttribute('data-filled');
+  upClearErr(zone);
+}
+function bindDrops(){
+  document.querySelectorAll('#wkPanel .drop').forEach(zone => {
+    if(zone.dataset.bound) return;
+    zone.dataset.bound = '1';
+    const inp = zone.querySelector('input[type=file]');
+    zone.addEventListener('click', e => {
+      if(e.target.closest('.dpx')){ e.stopPropagation(); upClear(zone); return; }
+      inp.click();
+    });
+    zone.addEventListener('keydown', e => {
+      if(e.key==='Enter' || e.key===' '){ e.preventDefault(); inp.click(); } });
+    inp.addEventListener('change', () => upAccept(zone, inp.files && inp.files[0]));
+    ['dragenter','dragover'].forEach(n => zone.addEventListener(n, e => {
+      e.preventDefault(); zone.classList.add('over'); }));
+    ['dragleave','dragend'].forEach(n => zone.addEventListener(n, () =>
+      zone.classList.remove('over')));
+    zone.addEventListener('drop', e => {
+      e.preventDefault(); zone.classList.remove('over');
+      upAccept(zone, e.dataTransfer && e.dataTransfer.files[0]); });
+  });
+  /* Вставка из буфера вешается на документ ОДИН раз и уходит в первую
+     видимую зону: иначе на окне с двумя полями непонятно, куда вставилось. */
+  if(!UP_PASTE_BOUND){
+    UP_PASTE_BOUND = true;
+    document.addEventListener('paste', e => {
+      const zone = document.querySelector('#wkPanel .drop:not([data-filled])');
+      if(!zone || !zone.offsetParent) return;
+      const it = [...(e.clipboardData ? e.clipboardData.items : [])]
+        .find(x => x.type && x.type.indexOf('image') === 0);
+      if(it){ e.preventDefault(); upAccept(zone, it.getAsFile()); }
+    });
+  }
+}
+
 window.pickChip = el => {
   [...el.parentNode.children].forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
@@ -3968,6 +4096,7 @@ function buildWork(id){
   $('wkStage').style.cssText = boxFor(w);
   $('wkStage').innerHTML = (STAGES[w.stage.k]||STAGES.img)(w.stage);
   $('wkStageTools').innerHTML = w.stage.k==='inpaint' ? IP_TOOLS() : '';
+  /* bindDrops вызывается ПОСЛЕ innerHTML — до него узлов ещё нет. */
   $('wkPanel').innerHTML = w.fields.map(field).join('') +
     `<div class="gorow">
        <button class="btn wide big">${T('cta_'+id,w.cta)}
@@ -3976,6 +4105,7 @@ function buildWork(id){
        <div class="cost-note"><b>248</b> ${T('cr_left','credits left')} ·
          <a onclick="go('pricing')">${T('topup','Top up')}</a></div>
      </div>`;
+  bindDrops();
   /* что можно сделать с результатом — переход в соседний инструмент */
   $('wkAfter').innerHTML = `<span class="lb">${T('then','Then:')}</span>` +
     (w.after||[]).map(a=>{ const t=FN.find(x=>x.id===a); return t?
