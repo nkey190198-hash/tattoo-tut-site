@@ -664,6 +664,12 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
   object-fit:cover;display:block;opacity:0;transition:opacity .85s ease}
 .tile .car img.on{opacity:1}
 
+/* ── ВРАЩЕНИЕ (turntable) ─────────────────────────────────
+   Лента кадров одной картинкой: один запрос вместо 24, переключение
+   мгновенное. Диапазон кадров ЗАЖАТ намеренно — см. tt: в FN. */
+.tile .tt{position:absolute;inset:0;z-index:1;background-repeat:no-repeat;
+  background-color:#fff}
+
 /* ── КВАДРАТ ПРОТИВ ВЕРТИКАЛЬНОЙ РАБОТЫ ────────────────────
    Владелец 02.08, дважды: «формат 1:1 обрезает верха, и это уёбищно
    выглядит; в Edit Sketch слайд обрезает голову».
@@ -1460,7 +1466,7 @@ const FN = [
   {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm',   img:'img/demo_tryon.jpg', n:'Try it on the body',   h:'See it on the arm, back, ribs'},
   {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
-  {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye',    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
+  {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye', tt:{sprite:'img/tt_greyhound.webp',cols:8,rows:3,from:4,to:8,ms:120},    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
   {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep', wk:1, img:'img/borzoi.jpg',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
   {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake', vd:{src:'img/vid_animate.mp4',poster:'img/vid_animate.jpg'},  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
   {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring', vd:{src:'img/vid_animsketch.mp4',poster:'img/vid_animsketch.jpg'},   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
@@ -3175,7 +3181,8 @@ function renderTiles(){
      языках это регресс. Из пакета берём только то, чего у нас нет. */
   $('tiles').innerHTML = list.map(f=>`
     <article class="tile${f.wk?' wk':''}" onclick="openWork('${f.id}')">
-      ${f.car ? carHTML(f.car, 'cartile_'+f.id)
+      ${f.tt ? ttHTML(f.tt, 'tttile_'+f.id)
+             : f.car ? carHTML(f.car, 'cartile_'+f.id)
              : f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
                       T('ba_after','TRANSFER'), 'batile_'+f.id)
              : f.vd ? vidHTML(f.vd.src, f.vd.poster, 'vdtile_'+f.id)
@@ -3189,7 +3196,8 @@ function renderTiles(){
     </article>`).join('');
   list.forEach(f => { if (f.ba)  baBind('batile_'+f.id, true);
                       if (f.vd)  vidBind('vdtile_'+f.id);
-                      if (f.car) carBind('cartile_'+f.id); });
+                      if (f.car) carBind('cartile_'+f.id);
+                      if (f.tt)  ttBind(f.tt, 'tttile_'+f.id); });
   $('fcount').textContent = `${list.length} / ${FN.length}`;
 }
 window.setFilter = c => { FILTER = c; renderFilters(); renderTiles(); };
@@ -3611,6 +3619,37 @@ function baHTML(a, b, la, lb, id){
     <div class="bar"></div><div class="knob">↔</div>
     <span class="tagL">${la}</span><span class="tagR">${lb}</span></div>`;
 }
+/* Вращение: лента кадров показывается сдвигом фона.
+   🔴 ДИАПАЗОН КАДРОВ ЗАЖАТ И ЭТО НЕ ПРИДИРКА. Рельеф — не полный меш:
+   со спины он пустой, и на крайних углах читается как плита с торцом.
+   Замер по ширине КРАСНОГО тела (тень на сетке серая, её надо исключать,
+   иначе рамка во всех кадрах 100% и метрика врёт): чистая синусоида,
+   фронт на кадрах 6 и 18, ребро на 0 и 12. Собака держится на 4..8.
+   Играем этот отрезок туда-обратно — плита в кадр не попадает вовсе. */
+function ttHTML(t, id){
+  return `<div class="tt" id="${id}" style="background-image:url(${t.sprite});
+    background-size:${t.cols*100}% ${t.rows*100}%"></div>`;
+}
+function ttBind(t, id){
+  const el=$(id); if(!el) return;
+  const put=i=>{ const c=i%t.cols, r=Math.floor(i/t.cols);
+    el.style.backgroundPosition =
+      `${c*100/(t.cols-1)}% ${r*100/(t.rows-1)}%`; };
+  put(t.from);
+  let reduced=false;
+  try{ reduced=matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  if(reduced) return;                       // стоит на первом кадре
+  let i=t.from, dir=1, timer=null;
+  const step=()=>{ i+=dir;
+    if(i>=t.to){ i=t.to; dir=-1; } else if(i<=t.from){ i=t.from; dir=1; }
+    put(i); };
+  const run=()=>{ if(!timer) timer=setInterval(step, t.ms||110); };
+  const stop=()=>{ if(timer){ clearInterval(timer); timer=null; } };
+  if(!('IntersectionObserver' in window)){ run(); return; }
+  new IntersectionObserver(es=>es.forEach(en=>en.isIntersecting?run():stop()),
+    {rootMargin:'100px',threshold:.25}).observe(el);
+}
+
 /* Карусель работ в плитке. Кадры едут влево по одному; за экраном таймер
    выключен, иначе телефон крутит невидимую ленту и жжёт батарею.
    prefers-reduced-motion → стоит первый кадр, без движения. */
