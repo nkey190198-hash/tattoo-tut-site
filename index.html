@@ -1783,6 +1783,10 @@ ru:{
  pay_h:'Оплата', pay_per:'в месяц', pay_go:'Оплатить',
  pay_about:'примерно {r} ₽ по текущему курсу',
  pay_soon:'Оплата включится на запуске',
+ ss_contour:'Контур', ss_contour_h:'Чистая линия под перевод',
+ ss_shaded:'С тенями', ss_shaded_h:'Линия плюс карта серого',
+ ss_dotwork:'Дотворк', ss_dotwork_h:'Точки не съедаются, зерно живое',
+ ss_skin:'Под кожу', ss_skin_h:'Поправка на рельеф и натяжение',
  up_ways:'Нажми и выбери · перетащи · или вставь из буфера',
  up_aria:'Выбрать файл', up_clear:'Убрать',
  up_e_type:'Это не картинка. Нужен PNG, JPG или WEBP.',
@@ -3574,15 +3578,28 @@ window.payGo = () => {
    Владелец 02.08: человек выбирает вид трансфера ПРЕВЬЮШКАМИ, а не словами.
    Каждая плитка сама перелистывается эскиз↔трансфер, а в большом окне
    ползунок водится пальцем. Картинки — наши настоящие работы. */
+/* Три варианта трансфера, которые владелец назвал 03.08: чистая линия,
+   линия+тень (то, что демонстрирует бык) и дотворк точками — тот же режим,
+   что бот уже даёт под «реализм».
+   🔴 Здесь было ДВА дефекта, оба чинились вслепую из кода:
+   1) названия стояли ПО-РУССКИ прямо в объекте, мимо T() — англоязычный
+      мастер видел «Контур» и «С тенями» на английском сайте с 10 языками;
+   2) у дотворка пара шла ЗАДОМ НАПЕРЁД (a=трансфер, b=эскиз), то есть
+      ползунок показывал превращение трансфера в эскиз.
+   Направление везде одно: a = исходная работа, b = что вернёт движок. */
 const STENCIL_STYLES = [
-  {id:'contour', n:'Контур',       h:'Чистая линия под перевод',
+  {id:'contour', n:T('ss_contour','Clean line'),
+   h:T('ss_contour_h','Pure outline, ready to transfer'),
    a:'img/bull_sketch.jpg',  b:'img/bull_transfer.jpg'},
-  {id:'shaded',  n:'С тенями',     h:'Линия плюс карта серого',
+  {id:'shaded',  n:T('ss_shaded','Line and shade'),
+   h:T('ss_shaded_h','Outline plus a grey map'),
    a:'img/demo_sketch.jpg',  b:'img/demo_transfer.jpg'},
-  {id:'dotwork', n:'Дотворк',      h:'Точки не съедаются, зерно живое',
-   a:'img/bull_transfer.jpg', b:'img/bull_sketch.jpg'},
-  {id:'skin',    n:'Под кожу',     h:'Поправка на рельеф и натяжение',
-   a:'img/demo_transfer.jpg', b:'img/demo_tryon.jpg'},
+  {id:'dotwork', n:T('ss_dotwork','Dotwork'),
+   h:T('ss_dotwork_h','Stipple survives, the grain stays alive'),
+   a:'img/skull_extract.jpg', b:'img/skull_body.jpg'},
+  {id:'skin',    n:T('ss_skin','On the skin'),
+   h:T('ss_skin_h','Corrected for relief and stretch'),
+   a:'img/demo_sketch.jpg', b:'img/demo_tryon.jpg'},
 ];
 let STENCIL_STYLE = 'contour';
 
