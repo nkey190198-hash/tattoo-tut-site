@@ -670,6 +670,28 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 .tile .tt{position:absolute;inset:0;z-index:1;background-repeat:no-repeat;
   background-color:#fff}
 
+/* ── РАКУРСЫ: отдельные кадры, петля туда-обратно ──────────
+   Не лента, а отдельные файлы: в ленте каждый кадр ужат до ячейки
+   (у нашей 2560×960 это 320 px), и на ретине плитка выходит мыльной
+   рядом с соседними. Кадры лежат стопкой и переключаются прозрачностью —
+   вёрстку браузер не пересчитывает, работает только композитор.
+   Мышью кадр листается вручную: курсор по ширине = номер кадра.
+   Пальцем намеренно НЕТ: горизонтальный жест на плитке уже значит
+   «открыть», и драка жестов дороже, чем ручное листание. */
+/* 🔴 Класс frm, а НЕ fl: .fl в этом файле с самого начала занят чипами
+   фильтра над сеткой (строка 142). Я назвал блок .fl и position:absolute
+   слизнул весь ряд фильтров с экрана — поймал глазами в браузере, не
+   чтением. Проверять занятость класса до того, как его объявлять. */
+.frm{position:absolute;inset:0;overflow:hidden;z-index:1;background:#fff;
+  touch-action:pan-y;user-select:none}
+.frm img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block;opacity:0;transition:opacity .17s linear;pointer-events:none}
+.frm img.on{opacity:1}
+@media (hover:hover){.frm{cursor:ew-resize}}
+/* Строка честности под холстом рабочего окна: демо — это ДЕМО. */
+.stagenote{margin:9px auto 0;max-width:52ch;text-align:center;font-size:11.5px;
+  line-height:1.45;color:var(--ink-3)}
+
 /* ── КВАДРАТ ПРОТИВ ВЕРТИКАЛЬНОЙ РАБОТЫ ────────────────────
    Владелец 02.08, дважды: «формат 1:1 обрезает верха, и это уёбищно
    выглядит; в Edit Sketch слайд обрезает голову».
@@ -1459,18 +1481,33 @@ const fx = k => FX[k] || '';
 /* инструменты: cat — для фильтра, cost — в кредитах */
 const FN = [
   {id:'sketch',  e:'✏️', cat:'sketch', cost:1,  fxk:'blob', car:['img/angel.jpg','img/st_space.jpg','img/st_leo.jpg','img/st_japan.jpg','img/st_lada.jpg','img/st_george.jpg','img/st_queen.jpg'], n:'Create a sketch',      h:'Words in, finished design out'},
-  {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame', xf:{a:'img/skull_body.jpg',b:'img/skull_extract.jpg'},  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
-  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes', xf:{a:'img/edit_a.jpg',b:'img/edit_b.jpg'},  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
-  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', ba:{a:'img/bull_sketch.jpg',b:'img/bull_transfer.jpg'}, n:'Stencil',              h:'Clean lines ready to transfer'},
+  {id:'extract', e:'🔍', cat:'sketch', cost:1,  fxk:'frame', xf:{a:'img/demo_extract_a.jpg',b:'img/demo_extract_b.jpg'},  n:'Sketch from a photo',  h:'Pull a design out of any shot'},
+  {id:'edit',    e:'🖌',  cat:'sketch', cost:1,  fxk:'nodes', xf:{a:'img/demo_edit_a.jpg',b:'img/demo_edit_b.jpg'},  n:'Edit a sketch',        h:'Add, remove, replace — keep the style'},
+  {id:'stencil', e:'📄', cat:'print',  cost:1,  fxk:'lines', ba:{a:'img/demo_stencil_a.jpg',b:'img/demo_stencil_b.jpg'}, n:'Stencil',              h:'Clean lines ready to transfer'},
   {id:'bigprint',e:'🖨',  cat:'print',  cost:1,  fxk:'stack', ba:{a:'img/fairy_a.jpg',b:'img/fairy_b.jpg'}, n:'A4 tiling',            h:'Any size laid out across A4 sheets'},
   {id:'tryon',   e:'🫱', cat:'body',   cost:2,  fxk:'arm', vd:{src:'img/vid_tryon.mp4',poster:'img/vid_tryon.jpg'}, n:'Try it on the body',   h:'See it on the arm, back, ribs'},
   {id:'vidtryon',e:'🎥', cat:'body',   cost:6,  fxk:'armv',   n:'Video try-on',         h:'The arm moves, the piece stays put', tag:'NEW'},
   {id:'link',    e:'🔗', cat:'body',   cost:0,  fxk:'fly',    n:'Send to the client',   h:'They try it on, you get the enquiry'},
-  {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye', tt:{sprite:'img/tt_skull3d.webp',cols:8,rows:3,from:5,to:10,ms:120},    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
+  /* Ракурсы вместо ленты-спрайта. Взяты кадры 01-02-03 — фас, три четверти,
+     профиль: честный поворот в одну сторону. Четвёртый кадр пака
+     (img/demo_view_04.jpg, лежит на месте) в петлю НЕ взят: по манифесту он
+     «три четверти вправо», а глазами это почти тот же фас, и переход
+     профиль→фас дёргает картинку назад. Вернуть — дописать путь в frames.
+     Старая лента img/tt_skull3d.webp никуда не делась, механизм tt: жив;
+     на плитке она проигрывала по резкости (ячейка 320 px против 1280).
+     🟡 РЕШЕНИЕ ВЛАДЕЛЬЦУ: метку NEW честнее поменять на PREVIEW — ключ
+     tag_preview уже переведён на все языки, правка в одно слово.
+     Живой функции 3D-разворота в продукте пока нет, а карточка стоит 2 кредита. */
+  {id:'render3d',e:'🧊', cat:'3d',     cost:2,  fxk:'eye', fl:{frames:['img/demo_view_01.jpg','img/demo_view_02.jpg','img/demo_view_03.jpg']},    n:'3D turnaround',        h:'Spin the design, take the angle you need', tag:'NEW'},
   {id:'light',   e:'💡', cat:'light',  cost:0,  fxk:'sweep', wk:1, img:'img/borzoi.jpg',  n:'Relight',              h:'Same design, different light', tag:'NEW'},
   {id:'animate', e:'🎬', cat:'video',  cost:5,  fxk:'snake', vd:{src:'img/vid_animate.mp4',poster:'img/vid_animate.jpg'},  n:'Animate the tattoo',   h:'The creature on the skin starts moving'},
   {id:'animsketch',e:'📽', cat:'video',cost:5,  fxk:'ring', vd:{src:'img/vid_animsketch.mp4',poster:'img/vid_animsketch.jpg'},   n:'Animate the sketch',   h:'Same move, but on paper — before it is on skin', tag:'NEW'},
-  {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo', xf:{a:'img/ret_a.jpg',b:'img/ret_b.jpg'},   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
+  /* Единственная пара, совмещённая по кадру пиксель в пиксель: то же плечо,
+     тот же ракурс, ушли только краснота и блик вспышки. Значит можно шторку —
+     на 50% человек видит красную кожу и чистую на ОДНОМ плече, и объяснять
+     нечего. У остальных пар кадры пересняты, там шторка рвала бы рисунок
+     по шву (то же соображение, что записано выше про .tile .xf). */
+  {id:'retouch', e:'✨', cat:'light',  cost:1,  fxk:'halo', ba:{a:'img/demo_retouch_a.jpg',b:'img/demo_retouch_b.jpg',la:'before',lb:'after'},   n:'Retouch the shot',     h:'Light, redness, clarity — portfolio grade'},
   {id:'palette', e:'🎨', cat:'light',  cost:0,  fxk:'swatch', n:'Palette',              h:'Pull the colours out of a design'},
 ];
 
@@ -1513,24 +1550,56 @@ const FEED = [
   {k:'Interview', badge:'THIS WEEK', fxk:'sweep', img:'img/draga-thumb.jpg',
    t:'Draga Pavlik — a line that grows like a plant',
    d:'Denmark, organic fine-line. On deep ecology, figure skating, and why tattooing stays a human-to-human thing.',
-   href:'https://nkey190198-hash.github.io/tattoo-tut-waitlist/interviews/draga-pavlik.html'},
+   href:'https://tattootut.github.io/interviews/draga-pavlik.html'},
   {k:'Feature of the month', badge:'NEW', fxk:'eye', t:'3D turnaround', go:'render3d',
    d:'Drop in a flat sketch, get volume. Spin it, catch the angle, take the design back in the same style.'},
   {k:'Deal', badge:'THIS MONTH', fxk:'snake', t:'Animate a tattoo — $4.99', go:'animate',
    d:'The creature on the skin moves. Your client sees the piece alive before the session.'},
-  {k:'Coming', badge:'SOON', fxk:'grid', t:'Second interview of the series',
-   d:'An artist, a style, and a breakdown of the craft. In production.'},
+  /* Карточка обещала «второе интервью в производстве», когда вышли уже три.
+     Обещание, которое сбылось и висит непогашенным, читается как заброшенный
+     проект. Ставим свежее вышедшее. */
+  {k:'Interview', badge:'NEW', fxk:'halo', t:'Lisa Ammer — dark realism and ornamental blackwork',
+   d:'Linz, Austria. Where ornament ends and portrait begins, and why the two hold each other up.',
+   href:'https://tattootut.github.io/interviews/lisa-ammer.html'},
 ];
 
 /* журнал — три полосы, каждая заканчивается инструментом */
 const JOURNAL = [
+  /* Интервью — только вышедшие, каждое ссылкой на живую страницу.
+     Адреса берутся из КАНОНА ССЫЛОК (docs/LINKS_CANON.md): орг tattootut,
+     чистый URL. Старое зеркало tattoo-tut-waitlist живёт для вышедших в
+     свет ссылок, но новые на него не ставим — оно legacy. */
   {sec:'Interviews', items:[
     {fxk:'sweep', img:'img/draga-thumb.jpg', t:'Draga Pavlik — a line that grows like a plant',
      d:'Organic fine-line out of Denmark. Deep ecology, figure skating, and staying human in the work.',
-     hook:'Try the style →', go:'sketch',
-     href:'https://nkey190198-hash.github.io/tattoo-tut-waitlist/interviews/draga-pavlik.html'},
-    {fxk:'blob', t:'In production — artist #2',
-     d:'A style, a working method, and the part nobody puts on Instagram.', hook:'Coming soon', go:''},
+     hook:'Read the interview →',
+     href:'https://tattootut.github.io/interviews/draga-pavlik.html'},
+    {fxk:'blob', t:'Laura Valentina — anime realism in black and grey',
+     d:'Vienna. Building depth without colour, and how a style becomes a booking calendar.',
+     hook:'Read the interview →',
+     href:'https://tattootut.github.io/interviews/laura-valentina.html'},
+    {fxk:'halo', t:'Lisa Ammer — dark realism and ornamental blackwork',
+     d:'Linz, Austria. Where ornament ends and portrait begins, and why the two hold each other up.',
+     hook:'Read the interview →',
+     href:'https://tattootut.github.io/interviews/lisa-ammer.html'},
+  ]},
+  /* Лента канала @tatututai. Посты в канале русские, сайт английский —
+     поэтому здесь заголовок и суть по-английски, а ссылка ведёт в пост.
+     Обновляется руками при выкатке: автоподтяжка требует бэкенда, а
+     врать «живой лентой», которой нет, нельзя. */
+  {sec:'From our channel', items:[
+    {fxk:'eye', t:'One model in ten walked with visible ink',
+     d:'Autumn-winter 2026 runways: roughly one model in ten showed tattoos, nearly double last season — and nobody was asked to cover up. Chanel, Gucci, Givenchy, Miu Miu, Schiaparelli, Tom Ford.',
+     hook:'Read in the channel →', href:'https://t.me/tatututai/134'},
+    {fxk:'arm', t:'A tattoo studio moved inside a beauty salon',
+     d:'Mumbai, Bandra. Aliens Tattoo and the Enrich salon chain opened a studio inside the salon floor: 82 square metres, private consultation zones, two businesses in one room.',
+     hook:'Read in the channel →', href:'https://t.me/tatututai/133'},
+    {fxk:'nodes', t:'Apprenticeship packaged as a product, paid in instalments',
+     d:'An American company places apprentices into partner studios it does not own, charges for the place, and promises a job offer to anyone who finishes.',
+     hook:'Read in the channel →', href:'https://t.me/tatututai/132'},
+    {fxk:'pages', t:'144 pages and not one filled-in sketch',
+     d:'Tattoo Life started a pocket series made to carry around. The first one is Paul Dobleman — hundreds of clean outlines, dozens to a page.',
+     hook:'Read in the channel →', href:'https://t.me/tatututai/131'},
   ]},
   {sec:'The tattoo world', items:[
     {fxk:'nodes', t:'What clients actually ask for this season',
@@ -1591,8 +1660,13 @@ const FAQ = [
 /* ── рабочие окна: каждое настроено отдельно ─────────────
    stage — что слева, fields — что справа, after — что можно
    сделать с результатом. */
+/* demo:{a,b,la,lb} в stage — живой пример НАШЕЙ работы вместо пустой рамки
+   «здесь появится результат». Пример подписан строкой честности под холстом
+   (ключ st_demo), чтобы его не приняли за уже сгенерированный результат.
+   Кадры 1:1, поэтому рамка под demo принудительно квадратная (см. boxFor):
+   в вертикальной 3/4 квадрат резался бы по верху и низу, а резать нельзя. */
 const WORK = {
-  sketch:{stage:{k:'img',ar:'3/4'},
+  sketch:{stage:{k:'img',ar:'3/4',demo:{a:'img/demo_sketch_a.jpg',b:'img/demo_sketch_b.jpg',la:'rough',lb:'done'}},
     fields:[{t:'text',l:'What to draw',ph:'A coiled snake, fine-line, forearm, stretched vertically…'},
             {t:'chips',l:'Style',v:STYLES},
             {t:'chips',l:'Where on the body',v:['forearm','shoulder','back','ribs','leg','hand','neck','chest']},
@@ -1608,7 +1682,7 @@ const WORK = {
             {t:'chips',l:'Format',v:['9:16','1:1','16:9']}],
     cta:'Animate the sketch', note:'Sell the idea before it is on skin',
     after:['link','tryon','animate']},
-  extract:{stage:{k:'img',ar:'3/4'},
+  extract:{stage:{k:'img',ar:'3/4',demo:{a:'img/demo_extract_a.jpg',b:'img/demo_extract_b.jpg',la:'photo',lb:'sketch'}},
     fields:[{t:'drop',l:'The photo',e:'📷',tt:'Drop a photo in',ss:'Any shot — a healed tattoo, a poster, a drawing on paper'},
             {t:'chips',l:'Pull out',v:['the line work','the whole design','one element']},
             {t:'chips',l:'Clean up',v:['light','medium','hard']}],
@@ -1634,7 +1708,10 @@ const WORK = {
             {t:'sel',l:'Overlap for taping',v:['5 mm','10 mm','15 mm'],def:1}],
     cta:'Lay it out', note:'No sheet spent on a sliver — the edge is protected',
     after:['stencil','tiling']},
-  tryon:{stage:{k:'img',ar:'3/4'},
+  /* Ролик остаётся НА ПЛИТКЕ, а пара — здесь. Дракон на спине нарисован
+     тонкой линией вдоль позвоночника: в плитке 300 px разница со «до»
+     почти не читается, а в рабочем окне 460 px читается сразу. */
+  tryon:{stage:{k:'img',ar:'3/4',demo:{a:'img/demo_tryon_a.jpg',b:'img/demo_tryon_b.jpg',la:'before',lb:'after'}},
     fields:[{t:'drop',l:'Photo of the body',e:'🫱',tt:'Drop the body photo in',ss:'Daylight, the whole area in frame'},
             {t:'drop',l:'The design',e:'🖼',tt:'Drop the design in',ss:'Transparent PNG works best'},
             {t:'sel',l:'Size',v:['Small · 8 cm','Medium · 15 cm','Large · 28 cm','Full sleeve · 50 cm'],def:1},
@@ -1678,7 +1755,7 @@ const WORK = {
             {t:'chips',l:'Format',v:['9:16','1:1','16:9']}],
     cta:'Animate', note:'The hook has to land in the first two seconds',
     after:['link','retouch','vidtryon']},
-  retouch:{stage:{k:'img',ar:'4/3'},
+  retouch:{stage:{k:'img',ar:'4/3',demo:{a:'img/demo_retouch_a.jpg',b:'img/demo_retouch_b.jpg',la:'before',lb:'after'}},
     fields:[{t:'drop',l:'The shot',e:'📷',tt:'Drop the photo in',ss:'Straight off the phone is fine'},
             {t:'chips',l:'Fix',v:['redness','light','clarity','all of it']},
             {t:'chips',l:'Strength',v:['subtle','normal','strong']}],
@@ -1953,6 +2030,10 @@ ru:{
  st_sh:'9 листов · A4 · нахлёст 10 мм · ни один лист не уходит на полоску',
  st_lk:'Клиент открывает, мерит на себе и пишет тебе. Пока он не сделал картинку, это бесплатно.',
  st_3d:'Тяни, чтобы крутить',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_photo:'ФОТО', ba_bef:'ДО', ba_aft:'ПОСЛЕ', ba_rough:'ЧЕРНОВИК', ba_done:'ГОТОВО', tag_new:'НОВОЕ', tag_preview:'ПРЕВЬЮ',
+ st_demo:'Наша работа, пример. Твой результат встанет в эту рамку.',
+ st_3d_note:'Превью. Разворот здесь — демонстрация, а не живой рендер.',
 
  /* ── кнопки запуска и приписки под ними ────────────────── */
  cta_sketch:'Нарисовать',        note_sketch:'Первый вариант примерно за 40 секунд',
@@ -2074,6 +2155,10 @@ ru:{
  st_sh:'9 listů · A4 · přesah 10 mm · žádný list nepadne na proužek',
  st_lk:'Klient si to otevře, zkusí na sebe a napíše ti. Zdarma, dokud negeneruje.',
  st_3d:'Táhni a otáčej',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'SKICA', ba_after:'PŘENOS', ba_photo:'FOTKA', ba_bef:'PŘED', ba_aft:'PO', ba_rough:'NÁČRT', ba_done:'HOTOVO', tag_new:'NOVÉ', tag_preview:'NÁHLED',
+ st_demo:'Naše práce, ukázka. Tvůj výsledek přistane v tomhle rámu.',
+ st_3d_note:'Náhled. Otáčení je zatím ukázka, ne živý render.',
 
  /* ── úprava štětcem ─────────────────────────────────────── */
  ip_t:'Přetři to, co chceš změnit',
@@ -2265,6 +2350,10 @@ ru:{
  st_sh:'9 Blätter · A4 · 10 mm Überlappung · kein Blatt für einen Streifen',
  st_lk:'Der Kunde macht auf, legt sich das Motiv auf die Haut und schreibt dir. Gratis, bis er generiert.',
  st_3d:'Ziehen zum Drehen',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'ENTWURF', ba_after:'TRANSFER', ba_photo:'FOTO', ba_bef:'VORHER', ba_aft:'NACHHER', ba_rough:'ROHSKIZZE', ba_done:'FERTIG', tag_new:'NEU', tag_preview:'VORSCHAU',
+ st_demo:'Unsere eigene Arbeit, ein Beispiel. Dein Ergebnis landet in diesem Rahmen.',
+ st_3d_note:'Vorschau. Die Drehung ist noch eine Demo, kein Live-Render.',
  ip_t:'Übermal, was sich ändern soll',
  ip_s:'Pinsel übers Gesicht, einen Arm, eine Blüte – dann sag, was damit passieren soll. Der Rest vom Entwurf bleibt unberührt.',
  ip_brush:'Pinsel',
@@ -2402,6 +2491,10 @@ ru:{
  st_sh:'9 hojas · A4 · 10 mm de solape · sin tiras desperdiciadas',
  st_lk:'Lo abre, se prueba el tatuaje y te escribe. Gratis hasta que genera.',
  st_3d:'Arrastra y gira',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'BOCETO', ba_after:'CALCO', ba_photo:'FOTO', ba_bef:'ANTES', ba_aft:'DESPUÉS', ba_rough:'BORRADOR', ba_done:'LISTO', tag_new:'NUEVO', tag_preview:'AVANCE',
+ st_demo:'Trabajo nuestro, un ejemplo. Tu resultado sale en este marco.',
+ st_3d_note:'Avance. El giro es una demo, todavía no un render en vivo.',
 
  /* ── правка по области ─────────────────────────────────── */
  ip_t:'Pinta lo que quieras cambiar',
@@ -2515,6 +2608,10 @@ ru:{
  st_sh:'9 feuilles · A4 · 10 mm de recouvrement · aucune bande perdue',
  st_lk:'Il ouvre, il essaie la pièce sur lui, il t\'écrit. Gratuit tant qu\'il n\'a rien généré.',
  st_3d:'Glisse pour tourner',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'DESSIN', ba_after:'CALQUE', ba_photo:'PHOTO', ba_bef:'AVANT', ba_aft:'APRÈS', ba_rough:'BROUILLON', ba_done:'FINI', tag_new:'NOUVEAU', tag_preview:'APERÇU',
+ st_demo:'Notre propre travail, un exemple. Ton résultat arrive dans ce cadre.',
+ st_3d_note:'Aperçu. La rotation est une démo, pas encore un rendu en direct.',
 
  /* ── кнопки запуска и приписки ──────────────────────────── */
  cta_sketch:'Dessiner',           note_sketch:'Première version en 40 secondes environ',
@@ -2665,6 +2762,10 @@ ru:{
  st_sh:'9 fogli · A4 · 10 mm di sovrapposizione · niente sprecato per una striscia',
  st_lk:'Lo apre, si prova il pezzo e ti scrive. Gratis finché non genera.',
  st_3d:'Trascina e gira',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'DISEGNO', ba_after:'TRANSFER', ba_photo:'FOTO', ba_bef:'PRIMA', ba_aft:'DOPO', ba_rough:'BOZZA', ba_done:'FINITO', tag_new:'NUOVO', tag_preview:'ANTEPRIMA',
+ st_demo:'Un nostro lavoro, un esempio. Il tuo risultato arriva in questa cornice.',
+ st_3d_note:'Anteprima. La rotazione è una demo, non ancora un render dal vivo.',
 
  /* ── modifica per area ────────────────────────────────── */
  ip_t:'Colora quello che vuoi cambiare',
@@ -2793,6 +2894,10 @@ ru:{
  st_sh:'9 vellen · A4 · 10 mm overlap · geen vel verspild aan een reepje',
  st_lk:'Hij opent hem, past het werk en schrijft jou. Gratis tot hij iets genereert.',
  st_3d:'Sleep en draai',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'SCHETS', ba_after:'TRANSFER', ba_photo:'FOTO', ba_bef:'VOOR', ba_aft:'NA', ba_rough:'RUWE SCHETS', ba_done:'KLAAR', tag_new:'NIEUW', tag_preview:'PREVIEW',
+ st_demo:'Eigen werk, een voorbeeld. Jouw resultaat komt in dit kader.',
+ st_3d_note:'Preview. De draaiing is een demo, nog geen live render.',
 
  /* ── правка по области ─────────────────────────────────── */
  ip_t:'Kleur in wat er moet veranderen',
@@ -2962,6 +3067,10 @@ ru:{
  st_sh:'9 kartek · A4 · 10 mm zakładki · nic nie idzie w pasek',
  st_lk:'Klient otwiera, przymierza i pisze do ciebie. Za darmo, dopóki nie zrobi obrazu.',
  st_3d:'Przeciągnij i obróć',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'SZKIC', ba_after:'KALKA', ba_photo:'ZDJĘCIE', ba_bef:'PRZED', ba_aft:'PO', ba_rough:'WSTĘPNY', ba_done:'GOTOWE', tag_new:'NOWOŚĆ', tag_preview:'ZAPOWIEDŹ',
+ st_demo:'Nasza praca, przykład. Twój wynik pojawi się w tej ramce.',
+ st_3d_note:'Zapowiedź. Obrót to na razie demo, nie żywy render.',
  ip_t:'Zamaluj to, co ma się zmienić',
  ip_s:'Zamaluj twarz, rękę, jeden kwiat i powiedz, co z tym zrobić. Reszta projektu zostaje nietknięta.',
  ip_brush:'Pędzel',
@@ -3103,6 +3212,10 @@ ru:{
  st_sh:'9 folhas · A4 · 10 mm de sobreposição · nada de folha perdida',
  st_lk:'Ele abre, testa na pele e te chama. De graça até ele gerar.',
  st_3d:'Arraste pra girar',
+ /* демо-наборы 14.08: подписи шторок, метки плиток, строки честности */
+ ba_before:'DESENHO', ba_after:'DECALQUE', ba_photo:'FOTO', ba_bef:'ANTES', ba_aft:'DEPOIS', ba_rough:'RABISCO', ba_done:'PRONTO', tag_new:'NOVO', tag_preview:'PRÉVIA',
+ st_demo:'Trabalho nosso, um exemplo. O teu resultado aparece neste quadro.',
+ st_3d_note:'Prévia. A rotação é uma demo, ainda não um render ao vivo.',
 
  /* ── pincel na área marcada ───────────────────────────── */
  ip_t:'Pinte o que você quer mudar',
@@ -3173,6 +3286,10 @@ function renderFilters(){
 
 function renderTiles(){
   const list = FILTER==='all' ? FN : FN.filter(f=>f.cat===FILTER);
+  /* Сетка переписывается целиком, значит все прежние петли ракурсов мертвы.
+     Чистим набор ДО отрисовки: иначе общий таймер продолжал бы будить
+     оторванные узлы, и каждое переключение фильтра добавляло бы ещё один. */
+  FL_LIVE.clear(); flSleep();
   /* Плитка с парой ba:{a,b} показывает живую шторку до/после прямо в сетке —
      не картинку-обещание, а нашу работу и её трансфер, которые человек
      сам перелистывает пальцем. Своя .ba, не сторонний слайдер: у пакета
@@ -3181,14 +3298,16 @@ function renderTiles(){
   $('tiles').innerHTML = list.map(f=>`
     <article class="tile${f.wk?' wk':''}" onclick="openWork('${f.id}')">
       ${f.tt ? ttHTML(f.tt, 'tttile_'+f.id)
+             : f.fl ? flHTML(f.fl, 'fltile_'+f.id)
              : f.car ? carHTML(f.car, 'cartile_'+f.id)
-             : f.ba ? baHTML(f.ba.a, f.ba.b, T('ba_before','SKETCH'),
-                      T('ba_after','TRANSFER'), 'batile_'+f.id)
+             : f.ba ? baHTML(f.ba.a, f.ba.b, baLab(f.ba.la||'sketch'),
+                      baLab(f.ba.lb||'transfer'), 'batile_'+f.id)
              : f.vd ? vidHTML(f.vd.src, f.vd.poster, 'vdtile_'+f.id)
              : f.xf ? `<div class="xf"><img src="${f.xf.a}" alt="" loading="lazy">
                        <img class="b" src="${f.xf.b}" alt="" loading="lazy"></div>`
              : f.img ? `<img class="ph" src="${f.img}" alt="" loading="lazy">` : fx(f.fxk)}
-      ${f.tag?`<span class="corner"><span class="tag">${f.tag}</span></span>`:''}
+      ${f.tag?`<span class="corner"><span class="tag">${
+        T('tag_'+String(f.tag).toLowerCase(), f.tag)}</span></span>`:''}
       <span class="cost">${f.cost?f.cost+' '+T('cr','cr'):T('free','free')}</span>
       <div class="lbl"><div class="n">${T('t_'+f.id,f.n)}</div>
         <div class="h">${T('h_'+f.id,f.h)}</div></div>
@@ -3196,6 +3315,7 @@ function renderTiles(){
   list.forEach(f => { if (f.ba)  baBind('batile_'+f.id, true);
                       if (f.vd)  vidBind('vdtile_'+f.id);
                       if (f.car) carBind('cartile_'+f.id);
+                      if (f.fl)  flBind(f.fl, 'fltile_'+f.id);
                       if (f.tt)  ttBind(f.tt, 'tttile_'+f.id); });
   $('fcount').textContent = `${list.length} / ${FN.length}`;
 }
@@ -3255,9 +3375,14 @@ function jcards(items){
   }).join('');
 }
 function renderJournal(){
-  $('journalHome').innerHTML = jcards(
-    [JOURNAL[0].items[0], JOURNAL[1].items[0], JOURNAL[1].items[3],
-     JOURNAL[2].items[0], JOURNAL[2].items[2]]);
+  /* Раньше здесь стояли жёсткие индексы JOURNAL[1].items[3] и т.п. Стоило
+     добавить полосу — и главная показывала не то, что думаешь, а при
+     короткой полосе падала на undefined. Теперь берём по одной карточке от
+     каждой полосы (полосы идут в порядке важности), добираем вторыми до
+     пяти. Полосу можно добавить или укоротить, главная не сломается. */
+  const first = JOURNAL.map(g => g.items[0]).filter(Boolean);
+  const rest  = JOURNAL.flatMap(g => g.items.slice(1, 2)).filter(Boolean);
+  $('journalHome').innerHTML = jcards([...first, ...rest].slice(0, 5));
   $('journalFull').innerHTML = JOURNAL.map((g,gi)=>`
     <div class="sec"><div class="sec-hd"><h2>${T('jsec_'+gi,g.sec)}</h2></div>
       <div class="jrn">${jcards(g.items)}</div></div>`).join('');
@@ -3609,6 +3734,79 @@ const STENCIL_STYLES = [
    a:'img/demo_sketch.jpg', b:'img/demo_tryon.jpg'},
 ];
 let STENCIL_STYLE = 'contour';
+
+/* Подписи по краям шторки. Ключ в DICT + английский запас: без запаса на
+   английском сайте вылез бы сырой ключ, а хардкод русского на английской
+   странице у нас уже был один раз и больше не будет. */
+const BA_LAB = {
+  sketch:['ba_before','SKETCH'], transfer:['ba_after','TRANSFER'],
+  photo :['ba_photo','PHOTO'],
+  before:['ba_bef','BEFORE'],    after   :['ba_aft','AFTER'],
+  rough :['ba_rough','ROUGH'],   done    :['ba_done','FINISHED'],
+};
+const baLab = k => { const p = BA_LAB[k] || BA_LAB.sketch; return T(p[0], p[1]); };
+
+/* ═══ РАКУРСЫ: перелистывание кадров ═══
+   ОДИН таймер на всю страницу, а не по таймеру на плитку. Плиток четырнадцать,
+   и четырнадцать setInterval с одним и тем же тактом — это четырнадцать
+   пробуждений процессора там, где хватает одного. Живые петли лежат в наборе:
+   таймер заводится, когда появился первый, и глохнет, когда вышел последний.
+   В набор попадают только ВИДИМЫЕ петли (IntersectionObserver) — за экраном
+   не тикает ничего. Узел, вынесенный из DOM при смене фильтра, IO отдаёт как
+   невидимый, поэтому набор чистится сам.
+   prefers-reduced-motion — стоит первый кадр, таймер не заводится вовсе. */
+const FL_MS = 700;                       /* манифест просил 600-800 */
+const FL_LIVE = new Set();
+let FL_TIMER = null;
+function flPulse(){ FL_LIVE.forEach(o => o.step()); }
+function flWake(){ if(!FL_TIMER && FL_LIVE.size) FL_TIMER = setInterval(flPulse, FL_MS); }
+function flSleep(){ if(FL_TIMER && !FL_LIVE.size){ clearInterval(FL_TIMER); FL_TIMER = null; } }
+
+function flHTML(t, id){
+  return `<div class="frm" id="${id}">` + (t.frames||[]).map((s,i)=>
+    `<img class="${i?'':'on'}" src="${s}" alt=""${i?' loading="lazy"':''}>`
+  ).join('') + `</div>`;
+}
+function flBind(t, id){
+  const el = $(id); if(!el) return;
+  const im = el.querySelectorAll('img'), n = im.length; if(n < 2) return;
+  let i = 0;
+  const put = k => { if(k === i || k < 0 || k >= n) return;
+    im[i].classList.remove('on'); i = k; im[i].classList.add('on'); };
+  /* Петля ТУДА-ОБРАТНО. Прямой круг 1-2-3-1 рвётся на стыке: между последним
+     кадром и первым пропущен весь обратный путь, и глаз читает рывок назад
+     вместо вращения. Разворот направления на краях делает движение непрерывным. */
+  let dir = 1;
+  /* isConnected — не перестраховка. Замер в браузере 14.08: переключил фильтр
+     на «Sketch», плитка ушла из DOM, а IntersectionObserver по оторванному
+     узлу НЕ выстрелил — набор остался с мёртвой петлёй, и таймер тикал по
+     ней вечно. Каждое переключение фильтра добавляло бы ещё одну.
+     Подметает renderTiles (там FL_LIVE.clear()), это второй рубеж на случай
+     любого другого пути, который вынесет узел. */
+  const o = { step(){ if(!el.isConnected){ FL_LIVE.delete(o); flSleep(); return; }
+                      if(i + dir >= n) dir = -1; else if(i + dir < 0) dir = 1;
+                      put(i + dir); } };
+  let reduced = false;
+  try{ reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){}
+  /* Ручное листание мышью: курсор по ширине = номер кадра. Разрешено и при
+     reduced-motion — там запрещено движение, которое человек не начинал. */
+  el.addEventListener('pointermove', e => {
+    if(e.pointerType !== 'mouse') return;
+    const r = el.getBoundingClientRect(); if(!r.width) return;
+    FL_LIVE.delete(o); flSleep();
+    put(Math.floor(Math.max(0, Math.min(.999, (e.clientX - r.left) / r.width)) * n));
+  });
+  el.addEventListener('pointerleave', e => {
+    if(e.pointerType !== 'mouse' || reduced) return;
+    FL_LIVE.add(o); flWake();
+  });
+  if(reduced) return;
+  const run  = () => { FL_LIVE.add(o);    flWake();  };
+  const stop = () => { FL_LIVE.delete(o); flSleep(); };
+  if(!('IntersectionObserver' in window)){ run(); return; }
+  new IntersectionObserver(es=>es.forEach(en=>en.isIntersecting?run():stop()),
+    {rootMargin:'100px',threshold:.25}).observe(el);
+}
 
 /* Шторка «до/после». Возвращает готовую разметку; водится мышью и пальцем. */
 function baHTML(a, b, la, lb, id){
@@ -4003,13 +4201,24 @@ const STAGE_BOX = {
   inpaint:'aspect-ratio:3/4;max-width:460px',
   ba:'aspect-ratio:3/4;max-width:460px',
   relight:'aspect-ratio:1;max-width:520px',
+  /* Демо-кадры честно 1:1. В вертикальной 3/4 рамке квадрат срезался бы
+     по верху и низу — правило владельца 03.08: вписывать достройкой, а не
+     обрезкой. Значит рамка подстраивается под кадр, а не кадр под рамку. */
+  bademo:'aspect-ratio:1;max-width:470px',
 };
-const boxFor = w => w.stage.k==='img'
+const boxFor = w => w.stage.demo ? STAGE_BOX.bademo
+  : w.stage.k==='img'
   ? (w.stage.ar==='4/3' ? STAGE_BOX.img43 : STAGE_BOX.img34)
   : (STAGE_BOX[w.stage.k] || STAGE_BOX.img43);
 
 const STAGES = {
-  img: ()=>`<div class="empty"><div class="big">🖼</div>
+  /* Есть пара — показываем живой пример вместо пустой рамки. Пустая рамка
+     ничего не обещает, пример показывает результат руками человека. Что это
+     ИМЕННО пример, говорит строка под холстом (st_demo) — иначе шторку можно
+     принять за уже сгенерированный результат, и это было бы враньё. */
+  img: (s)=> (s && s.demo)
+    ? baHTML(s.demo.a, s.demo.b, baLab(s.demo.la), baLab(s.demo.lb), 'baMain')
+    : `<div class="empty"><div class="big">🖼</div>
       <div class="t">${T('st_img','Your result lands here')}</div>
       <div class="s">${T('st_img_s','Fill the panel on the right and press the button. First option in about 40 seconds.')}</div></div>`,
   vid: ()=>`<div class="empty"><div class="big">🎬</div>
@@ -4193,7 +4402,16 @@ function buildWork(id){
   $('wkTag').textContent = T('h_'+id,f.h);
   $('wkStage').style.cssText = boxFor(w);
   $('wkStage').innerHTML = (STAGES[w.stage.k]||STAGES.img)(w.stage);
-  $('wkStageTools').innerHTML = w.stage.k==='inpaint' ? IP_TOOLS() : '';
+  /* Строка честности под холстом. Демо подписано как демо, а превью 3D —
+     как превью: живого разворота в продукте ещё нет, ракурсы подобраны
+     руками, и человек должен узнать это от нас, а не заметить сам. */
+  $('wkStageTools').innerHTML =
+      w.stage.k==='inpaint' ? IP_TOOLS()
+    : w.stage.demo ? `<div class="stagenote">${T('st_demo',
+        'Our own work, an example. Your result lands in this frame.')}</div>`
+    : w.stage.k==='3d' ? `<div class="stagenote">${T('st_3d_note',
+        'Preview. The turnaround here is a demo, not a live render yet.')}</div>`
+    : '';
   /* bindDrops вызывается ПОСЛЕ innerHTML — до него узлов ещё нет. */
   $('wkPanel').innerHTML = w.fields.map(field).join('') +
     `<div class="gorow">
