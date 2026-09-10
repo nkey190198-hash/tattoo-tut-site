@@ -861,7 +861,13 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 .ipwrap{position:relative;width:100%;border-radius:var(--r);overflow:hidden;
   background:linear-gradient(155deg,var(--media-a),var(--media-b));
   touch-action:none;cursor:crosshair}
-.ipwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* Загруженный кадр ложится ПОД холст, а не вместо него: рисовать надо
+   поверх своей работы. z-index явный, иначе канвас (без него) уходит под
+   картинку по порядку документа и кисть «не рисует». */
+.ipwrap .ipbg{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;background:#fff;z-index:0}
+.ipwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;
+  z-index:2}
 .ipwrap .iphint{position:absolute;inset:0;display:grid;place-items:center;
   color:#c9d2c2;font-size:12.5px;text-align:center;padding:24px;pointer-events:none;
   z-index:1}
@@ -930,6 +936,21 @@ input[type=range]:active::-webkit-slider-thumb{transform:scale(1.25)}
   .tabbar{display:flex}
   body{padding-bottom:76px}
   .me .signin{display:none}
+}
+/* 🔴 ШОВ ПОД ЗАКРЕПЛЁННЫМИ ПАНЕЛЯМИ НА ТЕЛЕФОНЕ (жалоба владельца 10.09,
+   тот же диагноз дал внешний разбор). Мобильные Safari и Chrome считают
+   `backdrop-filter` на sticky/fixed отдельным слоем композитинга: во время
+   инерционного скролла слой отстаёт от края на пару пикселей, и в щель
+   видно уезжающий контент. Полупрозрачный фон делает щель заметной.
+   Лечим не подгонкой отступов, а причиной: на устройствах без точного
+   курсора — размытия нет, фон сплошной. Стекло остаётся на десктопе, где
+   этот баг не воспроизводится. */
+@media(hover:none),(pointer:coarse){
+  header,.scrbar,.wkbar,.tabbar,.panel,.promo{
+    backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+    background:var(--paper)!important}
+  .tabbar{border-top:1px solid var(--line)}
+  header{border-bottom:1px solid var(--line)}
 }
 /* Сироты в сетках. При средней ширине 3 карточки ложились как 2+1, и одинокая
    третья читалась как «страница уехала влево». Ниже порога — одна колонка. */
@@ -4424,7 +4445,27 @@ function upAccept(zone, file){
     /* Человек должен УВИДЕТЬ, что его работа принята — не только имя файла.
        Поэтому картинка сразу встаёт в большое окно результата. */
     const stage = $('wkStage');
-    if(stage) stage.innerHTML =
+    if(!stage) return;
+    /* 🔴 РИСОВАНИЕ ПО ЗАГРУЖЕННОМУ КАДРУ НЕ РАБОТАЛО (находка владельца 10.09).
+       Здесь мы подменяли ВСЁ содержимое окна картинкой — и вместе с ним
+       сносили холст инпаинта со всеми обработчиками кисти. Человек загружал
+       фото и обнаруживал, что рисовать не по чему: инструмент выглядел
+       сломанным, хотя кисть была написана и работала до загрузки.
+       Для инпаинта кадр кладём ПОД холст и оставляем канвас на месте. */
+    const w = WORK[CUR_TOOL];
+    if(w && w.stage.k === 'inpaint'){
+      const wrap = $('ipWrap');
+      if(wrap){
+        let bg = wrap.querySelector('.ipbg');
+        if(!bg){ bg = document.createElement('img'); bg.className = 'ipbg';
+                 bg.alt = ''; wrap.insertBefore(bg, wrap.firstChild); }
+        bg.src = url;
+        const hint = wrap.querySelector('.iphint');
+        if(hint) hint.hidden = true;          // подсказка мешает видеть работу
+        return;
+      }
+    }
+    stage.innerHTML =
       `<img src="${url}" alt="" style="position:absolute;inset:0;width:100%;
         height:100%;object-fit:contain;background:#fff">`;
   };
@@ -4444,7 +4485,12 @@ function upClear(zone){
      демо-пару того инструмента, который сейчас открыт. */
   const w = WORK[CUR_TOOL];
   const stage = $('wkStage');
-  if(w && stage) stage.innerHTML = (STAGES[w.stage.k] || STAGES.img)(w.stage);
+  if(!w || !stage) return;
+  stage.innerHTML = (STAGES[w.stage.k] || STAGES.img)(w.stage);
+  /* Окно пересобрано с нуля — холст инпаинта родился заново и без
+     обработчиков. Без повторной привязки кисть после «удалить» умирала. */
+  if(w.stage.k === 'inpaint'){ IP.strokes = []; IP.cur = null; initInpaint(); }
+  if($('baMain')) baBind('baMain');
 }
 function bindDrops(){
   document.querySelectorAll('#wkPanel .drop').forEach(zone => {
