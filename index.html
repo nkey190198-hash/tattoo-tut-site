@@ -864,6 +864,29 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 /* Загруженный кадр ложится ПОД холст, а не вместо него: рисовать надо
    поверх своей работы. z-index явный, иначе канвас (без него) уходит под
    картинку по порядку документа и кисть «не рисует». */
+/* Разворот: крупный кадр со стрелками + сетка всех ракурсов под ним. */
+.turn{position:absolute;inset:0;border-radius:var(--r);overflow:hidden;
+  background:#fff;display:grid;place-items:center}
+.turn img{width:100%;height:100%;object-fit:contain;display:block}
+.turnarr{position:absolute;top:50%;transform:translateY(-50%);width:38px;
+  height:38px;border-radius:50%;border:1px solid var(--line);cursor:pointer;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);color:var(--ink);
+  font-size:20px;line-height:1;display:grid;place-items:center}
+.turnarr.l{left:8px} .turnarr.r{right:8px}
+.turnarr:hover{border-color:var(--ink-3)}
+.turnlbl{position:absolute;top:9px;left:9px;font:700 9.5px/1 'Inter',sans-serif;
+  letter-spacing:.09em;padding:4px 7px;border-radius:5px;
+  background:rgba(6,10,7,.6);color:#f2f0e6}
+.turngrid{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:8px}
+.tcell{position:relative;aspect-ratio:1;border-radius:7px;overflow:hidden;
+  border:1px solid var(--line);background:var(--sunk);cursor:pointer;padding:0;
+  display:grid;place-items:center}
+.tcell img{width:100%;height:100%;object-fit:cover;display:block}
+.tcell span{position:absolute;bottom:2px;right:3px;font-size:8.5px;
+  font-weight:700;color:var(--ink-3)}
+.tcell.on{border-color:var(--lime);box-shadow:0 0 0 1px var(--lime)}
+.tcell.q{cursor:default;border-style:dashed;opacity:.55}
+@media(max-width:560px){ .turngrid{grid-template-columns:repeat(4,1fr)} }
 .ipwrap .ipbg{position:absolute;inset:0;width:100%;height:100%;
   object-fit:contain;background:#fff;z-index:0}
 .ipwrap canvas{position:absolute;inset:0;width:100%;height:100%;display:block;
@@ -1259,7 +1282,11 @@ html{scrollbar-gutter:stable}
       <p data-i="sub">Sketch, stencil, on-body try-on, 3D turnaround and animation — one window. The machine stays in your hand, and so does the final say on every line.</p>
     </div>
     <div class="cmd">
-      <input id="cmdInput" data-ph="cmd_ph" placeholder="Describe the piece — a coiled snake, fine-line, forearm, vertical…">
+      <!-- Плейсхолдер короткий намеренно: прежние 66 символов на телефоне
+           обрезались по краю без многоточия и выглядели как битая вёрстка.
+           Enter здесь работает так же, как кнопка — см. bindCmd(). -->
+      <input id="cmdInput" data-ph="cmd_ph" enterkeyhint="go"
+             placeholder="A coiled snake, fine-line, forearm…">
       <span class="sel" onclick="openSheet()"><span data-i="cmd_in">in</span>
         <span class="cur" id="cmdTool">Create a sketch</span> ▾</span>
       <button class="btn" onclick="cmdGo()"><span data-i="create">Create</span></button>
@@ -4338,10 +4365,18 @@ const STAGES = {
       <div class="s" style="opacity:.6;font-size:11.5px;margin-top:14px">
         ${T('st_lk','They open it, try the piece on, and write to you. Free until they generate.')}</div></div>`;
   },
-  '3d': ()=>`${fx('eye')}<div class="empty" style="z-index:5">
-      <div class="t">${T('st_3d','Drag to spin')}</div></div>
-    <div class="slider"><input type="range" min="0" max="360" value="0" id="ang3d">
-      <span id="angv">0°</span></div>`,
+  /* Разворот: РЕАЛЬНЫЕ кадры и настоящий выбор угла вместо абстрактного
+     шара с ползунком в никуда (заказ владельца 10.09 — «как в Хиггсфилде»).
+     Стрелки шагают по ракурсам, сетка внизу показывает всю выдачу разом.
+     Кадры, которых у нас ещё нет, показаны честно пустой клеткой с углом —
+     так видно, что инструмент отдаёт ДВЕНАДЦАТЬ ракурсов, и не создаётся
+     впечатления, будто мы уже их сгенерировали. */
+  '3d': ()=>`<div class="turn" id="turnBox">
+      <img id="turnImg" src="${TURN_ANGLES[0].img}" alt="">
+      <button class="turnarr l" onclick="turnStep(-1)" aria-label="${T('t3_prev','Turn left')}">‹</button>
+      <button class="turnarr r" onclick="turnStep(1)" aria-label="${T('t3_next','Turn right')}">›</button>
+      <span class="turnlbl" id="turnLbl">${TURN_ANGLES[0].deg}°</span>
+    </div>`,
   /* НАСТОЯЩАЯ функция, а не заглушка: толщина штриха → карта высот →
      псевдо-нормали → Ламберт с бликом. Ноль вызовов движка, ноль долларов,
      60 fps. Математика идентична relight_engine.py (самотест 6/6). */
@@ -4360,6 +4395,46 @@ const STAGES = {
           ${T('ip_s','Brush the face, a limb, one flower — then say what to do with it. The rest of the sketch stays untouched.')}</div>
       </div></div></div>`,
 };
+/* ── РАЗВОРОТ: двенадцать ракурсов ────────────────────────────
+   Четыре кадра у нас сняты, остальные восемь инструмент сгенерирует. Пустые
+   клетки подписаны углом: человек видит объём выдачи, но не принимает её за
+   готовую. Заполнится само, как появятся кадры — правится один массив,
+   разметка и логика не меняются. */
+const TURN_ANGLES = [
+  {deg:0,   img:'img/demo_view_01.jpg'}, {deg:30,  img:''},
+  {deg:60,  img:'img/demo_view_02.jpg'}, {deg:90,  img:''},
+  {deg:120, img:'img/demo_view_03.jpg'}, {deg:150, img:''},
+  {deg:180, img:'img/demo_view_04.jpg'}, {deg:210, img:''},
+  {deg:240, img:''}, {deg:270, img:''},
+  {deg:300, img:''}, {deg:330, img:''},
+];
+let TURN_I = 0;
+const T3D_TOOLS = () => `<div class="turngrid" id="turnGrid">${
+  TURN_ANGLES.map((a,i)=>a.img
+    ? `<button class="tcell${i===TURN_I?' on':''}" onclick="turnPick(${i})">
+         <img src="${a.img}" alt="" loading="lazy"><span>${a.deg}°</span></button>`
+    : `<button class="tcell q" disabled><span>${a.deg}°</span></button>`).join('')
+}</div><div class="stagenote">${T('t3_note',
+  'Twelve angles in one go. Four are shown from our own turnaround — the rest come back filled when you run it.')}</div>`;
+
+window.turnPick = i => {
+  const a = TURN_ANGLES[i]; if(!a || !a.img) return;
+  TURN_I = i;
+  const im = $('turnImg'), lb = $('turnLbl');
+  if(im) im.src = a.img;
+  if(lb) lb.textContent = a.deg + '°';
+  document.querySelectorAll('#turnGrid .tcell').forEach((el,k)=>
+    el.classList.toggle('on', k === i));
+};
+/* Шаг стрелкой пропускает несуществующие кадры: упереться в пустую клетку и
+   решить, что кнопка сломана, — ровно то, чего мы избегаем. */
+window.turnStep = d => {
+  const have = TURN_ANGLES.map((a,i)=>a.img?i:-1).filter(i=>i>=0);
+  if(!have.length) return;
+  const pos = have.indexOf(TURN_I);
+  turnPick(have[(pos + d + have.length) % have.length]);
+};
+
 /* Панель кисти под холстом — только для inpaint */
 const IP_TOOLS = () => `<div class="iptools">
   <span class="ipbtn on" onclick="ipMode('brush',this)" title="${T('ip_brush','Brush')}">✏️</span>
@@ -4544,6 +4619,7 @@ function buildWork(id){
      руками, и человек должен узнать это от нас, а не заметить сам. */
   $('wkStageTools').innerHTML =
       w.stage.k==='inpaint' ? IP_TOOLS()
+    : w.stage.k==='3d' ? T3D_TOOLS()
     : w.stage.demo ? `<div class="stagenote">${T('st_demo',
         'Our own work, an example. Your result lands in this frame.')}</div>`
     : w.stage.k==='3d' ? `<div class="stagenote">${T('st_3d_note',
@@ -4564,12 +4640,10 @@ function buildWork(id){
     (w.after||[]).map(a=>{ const t=FN.find(x=>x.id===a); return t?
       `<span class="pill" onclick="openWork('${a}')">${t.e} ${T('t_'+a,t.n)}</span>`:''; }).join('') +
     `<span class="pill">⬇️ ${T('dl','Download')}</span>`;
-  const s=$('ang3d');
-  if(s) s.oninput=e=>{
-    $('angv').textContent=e.target.value+'°';
-    const el=document.querySelector('#wkStage .eye');
-    if(el) el.style.transform=`rotate(${e.target.value}deg)`;
-  };
+  /* Ползунок `ang3d` крутил декоративный шар и к ракурсам отношения не имел —
+     ушёл вместе с ним. Разворот теперь на реальных кадрах, состояние
+     сбрасывается на первый кадр при каждом входе в окно. */
+  if($('turnImg')) turnPick(TURN_ANGLES.findIndex(a=>a.img));
   const ip=$('inpaintCanvas');
   if(ip) initInpaint();
   if($('baMain')) baBind('baMain');
@@ -4595,7 +4669,34 @@ let CUR_TOOL='sketch';
 
 /* ═══════════════ КОМАНДНАЯ СТРОКА ═══════════════ */
 let CMD_TOOL='sketch';
-window.cmdGo = () => openWork(CMD_TOOL);
+/* Enter в главной строке = кнопка «Создать». Формы вокруг строки нет, а
+   без обработчика клавиатуры человек жал Enter и не получал НИЧЕГО —
+   молчание вместо действия читается как поломка. */
+function bindCmd(){
+  const inp = $('cmdInput'); if(!inp || inp.dataset.bound) return;
+  inp.dataset.bound = '1';
+  inp.addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); cmdGo(); }
+  });
+}
+/* 🔴 ГЛАВНАЯ СТРОКА ТЕРЯЛА ТЕКСТ (жалоба владельца, подтвердил внешний
+   разбор). `cmdGo` открывал окно и НЕ читал строку: человек описывал работу,
+   жал «Создать» и попадал в пустое поле. Первое же действие на сайте
+   выглядело сломанным, а сама строка читалась как поиск, а не как генератор.
+   Теперь текст переезжает в первое текстовое поле инструмента, туда же
+   уходит фокус и курсор в конец — видно, что слова доехали. */
+window.cmdGo = () => {
+  const inp = $('cmdInput');
+  const text = inp ? inp.value.trim() : '';
+  openWork(CMD_TOOL);
+  if(!text) return;
+  const ta = document.querySelector('#wkPanel textarea, #wkPanel input[type=text]');
+  if(!ta) return;                       // у инструмента нет текстового поля
+  ta.value = text;
+  ta.focus();
+  try { ta.setSelectionRange(text.length, text.length); } catch(e){}
+  ta.scrollIntoView({block:'center', behavior:'smooth'});
+};
 window.openSheet = () => $('sheet').classList.add('on');
 window.closeSheet = () => $('sheet').classList.remove('on');
 
@@ -4614,6 +4715,7 @@ function renderAll(){
   applyI18n(); renderNav(); renderFilters(); renderTiles(); renderCubes();
   renderPresets(); renderFeed(); renderJournal(); renderPlans(); renderPicks();
   $('cmdTool').textContent = T('t_'+CMD_TOOL, FN.find(f=>f.id===CMD_TOOL).n);
+  bindCmd();
 }
 function setLang(L){ LANG=L; try{localStorage.setItem('lang',L)}catch(e){} renderAll(); }
 const saved=(()=>{try{return localStorage.getItem('lang')}catch(e){return null}})();
