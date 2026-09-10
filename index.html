@@ -50,6 +50,15 @@ h1,h2,h3,.osw{font-family:'Oswald',Impact,sans-serif;font-weight:600;
   letter-spacing:.01em;line-height:1.08}
 .wrap{max-width:1320px;margin:0 auto;padding:0 var(--gut)}
 .hidden{display:none!important}
+/* 🔴 АТРИБУТ hidden ПРОИГРЫВАЛ КЛАССУ (находка владельца 10.09).
+   Браузер прячет [hidden] правилом display:none из своей таблицы, а у неё
+   специфичность НУЛЕВАЯ — любой наш `.dp{display:flex}` её перебивает.
+   Из-за этого превью файла в поле загрузки было видно ВСЕГДА: пустой белый
+   квадрат с крестиком висел до того, как человек что-то прислал, и не
+   исчезал после удаления. Читалось как «файл не удаляется до конца».
+   Правило общее, а не точечное: тем же способом прятались `.dz` и другие
+   узлы, и следующий такой же баг просто не родится. */
+[hidden]{display:none!important}
 ::selection{background:var(--lime);color:#0b1208}
 
 /* ── типовые элементы ──────────────────────────────────── */
@@ -1777,14 +1786,24 @@ const WORK = {
             {t:'rng',l:'Gloss',id:'rlGloss',min:0,max:150,val:90}],
     cta:'Spin the light', note:'Runs on your own screen. Costs nothing, no waiting.',
     after:['retouch','animate','link']},
+  /* Оживление: СВОИ СЛОВА + ПРЕСЕТ, и правило старшинства сказано вслух.
+     Владелец 10.09: человек должен мочь написать только текст, взять только
+     пресет, или совместить. При споре выигрывает пресет — он собран и
+     проверен, а свободный текст пишется на бегу. Молчаливое старшинство
+     злит: человек не понимает, почему его слова не сработали, поэтому
+     правило стоит прямо под полем, а не в справке. */
   animate:{stage:{k:'vid'},
     fields:[{t:'drop',l:'Design or photo',e:'🖼',tt:'Drop it in',ss:'A sketch or a shot of the healed piece'},
-            {t:'pm',l:'The hook',v:[['Cobra strike','lunges at the camera'],['Spin & fly','twists up and out'],
+            {t:'text',l:'In your words — optional',
+             ph:'What should happen: the snake uncoils and strikes past the camera…'},
+            {t:'pm',l:'The hook',v:[['No preset','my words only'],
+                                    ['Cobra strike','lunges at the camera'],['Spin & fly','twists up and out'],
                                     ['Ink bloom','bleeds in like ink in water'],['Skin wake','the creature breathes'],
                                     ['Neon pass','a light sweeps across'],['Camera dive','the camera falls in']]},
-            {t:'sel',l:'Length',v:['3 seconds','5 seconds'],def:1},
+            {t:'sel',l:'Length',v:['5 seconds','10 seconds','15 seconds'],def:0},
             {t:'chips',l:'Format',v:['9:16','1:1','16:9']}],
-    cta:'Animate', note:'The hook has to land in the first two seconds',
+    cta:'Animate',
+    note:'Words alone — we do exactly that. Words plus a hook — we keep both, and the hook wins where they disagree. Either way it has to land in the first two seconds.',
     after:['link','retouch','vidtryon']},
   retouch:{stage:{k:'img',ar:'4/3',demo:{a:'img/demo_retouch_a.jpg',b:'img/demo_retouch_b.jpg',la:'before',lb:'after'}},
     fields:[{t:'drop',l:'The shot',e:'📷',tt:'Drop the photo in',ss:'Straight off the phone is fine'},
@@ -4418,6 +4437,14 @@ function upClear(zone){
   zone.querySelector('.dp').hidden = true;
   zone.removeAttribute('data-filled');
   upClearErr(zone);
+  /* 🔴 ФАЙЛ УДАЛЯЛСЯ НАПОЛОВИНУ (находка владельца 10.09). `upSet` ставит
+     картинку не только в поле, но и в БОЛЬШОЕ окно результата. Крестик
+     чистил поле и забывал окно — снимок оставался висеть, и человек решал,
+     что файл не удаляется. Возвращаем окну исходный вид: пустую рамку или
+     демо-пару того инструмента, который сейчас открыт. */
+  const w = WORK[CUR_TOOL];
+  const stage = $('wkStage');
+  if(w && stage) stage.innerHTML = (STAGES[w.stage.k] || STAGES.img)(w.stage);
 }
 function bindDrops(){
   document.querySelectorAll('#wkPanel .drop').forEach(zone => {
