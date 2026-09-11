@@ -59,6 +59,13 @@ h1,h2,h3,.osw{font-family:'Oswald',Impact,sans-serif;font-weight:600;
    Правило общее, а не точечное: тем же способом прятались `.dz` и другие
    узлы, и следующий такой же баг просто не родится. */
 [hidden]{display:none!important}
+/* Кнопки направления света: кружок слева, слова справа. */
+.presetmini.ld .pm{display:flex;align-items:center;gap:9px}
+.presetmini.ld .ldi{width:38px;height:38px;flex:none;border-radius:50%;
+  box-shadow:0 1px 4px rgba(6,10,7,.18)}
+.presetmini.ld .tx{min-width:0}
+.rngends{display:flex;justify-content:space-between;margin-top:3px;
+  font-size:10.5px;color:var(--ink-3);letter-spacing:.02em}
 ::selection{background:var(--lime);color:#0b1208}
 
 /* ── типовые элементы ──────────────────────────────────── */
@@ -1849,10 +1856,13 @@ const WORK = {
      света нет в облаке, он рисуется прямо в браузере на видеокарте. */
   light:{stage:{k:'relight'}, live:1,
     fields:[{t:'drop',l:'Your sketch',e:'🖼',tt:'Drop a sketch in',ss:'Line work reads best. Without a file you get a demo.'},
-            {t:'pm',l:'Light',v:[['From the right','classic relief'],['From above','even, portfolio'],
-                                 ['From the left','mirror of the right'],['Low and hard','texture screams']]},
-            {t:'rng',l:'Relief',id:'rlRelief',min:1,max:14,val:6},
-            {t:'rng',l:'Gloss',id:'rlGloss',min:0,max:150,val:90}],
+            {t:'lightdir',l:'Where the light comes from',v:[
+               {az:0,  elev:35, n:'From the right', h:'classic relief, the safe one'},
+               {az:90, elev:55, n:'From above',     h:'even, for the portfolio'},
+               {az:180,elev:35, n:'From the left',  h:'mirror of the right'},
+               {az:25, elev:14, n:'Low and hard',   h:'grazing — texture screams'}]},
+            {t:'rng',l:'Relief',id:'rlRelief',min:1,max:14,val:6,lo:'flat',hi:'deep'},
+            {t:'rng',l:'Gloss',id:'rlGloss',min:0,max:150,val:90,lo:'matte',hi:'wet'}],
     cta:'Spin the light', note:'Runs on your own screen. Costs nothing, no waiting.',
     after:['retouch','animate','link']},
   /* Оживление: СВОИ СЛОВА + ПРЕСЕТ, и правило старшинства сказано вслух.
@@ -2007,6 +2017,21 @@ ru:{
  rl_t:'Веди пальцем по эскизу',
  rl_s:'Свет едет за тобой. Толщина штриха становится рельефом.',
  rl_save:'Сохранить кадр', rl_nogl:'В этом браузере выключен WebGL',
+ /* 🔴 ЗНАЧЕНИЯ ПОЛЕЙ ПЕРЕВОДЯТСЯ ТОЛЬКО ТЕПЕРЬ (находка владельца 11.09).
+    Через словарь шли одни ЗАГОЛОВКИ полей, а варианты внутри печатались
+    как есть — при русском интерфейсе весь правый столбик оставался
+    английским во ВСЕХ инструментах. Ключ собирается из инструмента и
+    номеров: fv_<инструмент>_<поле>_<вариант> — подпись, fh_… — пояснение,
+    re0_/re1_… — концы ползунка (префикс fl_ занят заголовками полей). Заполняем по мере надобности: чего нет в
+    словаре, показывается по-английски, как и раньше. */
+ fv_light_1_0:'Справа',   fh_light_1_0:'классический рельеф, беспроигрышный',
+ fv_light_1_1:'Сверху',   fh_light_1_1:'ровный, для портфолио',
+ fv_light_1_2:'Слева',    fh_light_1_2:'зеркало правого',
+ fv_light_1_3:'Снизу, жёстко', fh_light_1_3:'вскользь — фактура кричит',
+ fl_where_the_light_comes_from:'Откуда падает свет',
+ ft_light_0:'Закинь эскиз', fs_light_0:'Лучше всего читается линия. Без файла покажем демо.',
+ re0_light_2:'плоско',  re1_light_2:'глубоко',
+ re0_light_3:'матово',  re1_light_3:'мокро',
  ip_none:'Сначала закрась область',
  ip_thin:'Тонко, но пройдёт. Шире — надёжнее.',
  ip_small:'Слишком тонко, чисто перерисовать не выйдет. Возьми кисть шире.',
@@ -4474,6 +4499,27 @@ const IP_TOOLS = () => `<div class="iptools">
 
 /* подписи полей рендерились сырым английским при любом языке */
 const flab = t => T('fl_'+String(t).toLowerCase().replace(/[^a-z]+/g,'_'), t);
+/* Кружок направления света. Азимут: 0 — справа, 90 — сверху, 180 — слева.
+   Высота: чем ниже источник, тем дальше блик от центра и тем жёстче тень —
+   ровно так свет и ведёт себя на коже. */
+function ldIcon(az, elev){
+  const R = 8 + 30 * (1 - Math.min(elev, 90) / 90);
+  const a = az * Math.PI / 180;
+  const hx = (50 + R * Math.cos(a)).toFixed(1);
+  const hy = (50 - R * Math.sin(a)).toFixed(1);
+  const sx = (50 - R * 0.55 * Math.cos(a)).toFixed(1);
+  const sy = (50 + R * 0.55 * Math.sin(a)).toFixed(1);
+  const hard = elev < 25 ? .42 : .24;      // низкий свет = злее тень
+  const id = 'ld' + az + '_' + elev;
+  return `<svg class="ldi" viewBox="0 0 100 100" aria-hidden="true">
+    <defs><radialGradient id="${id}" cx="${hx}%" cy="${hy}%" r="78%">
+      <stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#d8d4c6"/>
+      <stop offset="1" stop-color="#2b2f28"/></radialGradient></defs>
+    <circle cx="50" cy="50" r="34" fill="url(#${id})"/>
+    <ellipse cx="${sx}" cy="${sy}" rx="19" ry="7" fill="#0b1208" opacity="${hard}"/>
+    <circle cx="${hx}" cy="${hy}" r="5.5" fill="#c4f000"/>
+  </svg>`;
+}
 function field(f,i){
   const l=`<label>${flab(f.l)}</label>`;
   if(f.t==='text' && f.inp) return `<div class="fld">${l}
@@ -4487,15 +4533,32 @@ function field(f,i){
   if(f.t==='pm') return `<div class="fld">${l}<div class="presetmini">${
     f.v.map(([n,h],j)=>`<div class="pm${j===0?' on':''}" onclick="pickChip(this)">
       <div class="n">${n}</div><div class="h">${h}</div></div>`).join('')}</div></div>`;
+  /* 🔴 СВЕТ НАДО ПОКАЗЫВАТЬ, А НЕ ОПИСЫВАТЬ (заказ владельца 11.09).
+     Было четыре подписи «From the right / From above / From the left / Low
+     and hard» — человек не понимает, что выберет, пока не ткнёт все четыре.
+     Стало: у каждой кнопки свой кружок, на котором свет стоит там, куда он
+     встанет на работе, и тень лежит с обратной стороны. Азимут и высота
+     берутся из тех же чисел, что уходят в движок, — картинка не может
+     разойтись с результатом, потому что рисуется из него. */
+  if(f.t==='lightdir') return `<div class="fld">${l}<div class="presetmini ld">${
+    f.v.map((o,j)=>`<div class="pm${j===0?' on':''}" data-az="${o.az}" data-elev="${o.elev}"
+      onclick="pickChip(this)">${ldIcon(o.az,o.elev)}
+      <div class="tx"><div class="n">${T('fv_'+CUR_TOOL+'_'+i+'_'+j,o.n)}</div>
+        <div class="h">${T('fh_'+CUR_TOOL+'_'+i+'_'+j,o.h)}</div></div>
+    </div>`).join('')}</div></div>`;
   if(f.t==='styles') return `<div class="fld">${l}${stylesHTML()}</div>`;
+  /* У ползунка без подписей концов не видно, куда он ведёт: «Рельеф 6» ни о
+     чём не говорит. Подписываем края словами — плоско против глубоко. */
   if(f.t==='rng') return `<div class="fld">${l}<input type="range" id="${f.id}"
-    min="${f.min}" max="${f.max}" value="${f.val}" style="width:100%"></div>`;
+    min="${f.min}" max="${f.max}" value="${f.val}" style="width:100%">${
+    f.lo ? `<div class="rngends"><span>${T('re0_'+CUR_TOOL+'_'+i,f.lo)}</span>
+      <span>${T('re1_'+CUR_TOOL+'_'+i,f.hi)}</span></div>` : ''}</div>`;
   if(f.t==='drop') return `<div class="fld">${l}<div class="drop" id="drop${i}"
       tabindex="0" role="button" aria-label="${T('up_aria','Choose a file')}">
     <input type="file" accept="image/*" hidden>
     <div class="dz">
-      <div class="e">${f.e}</div><div class="t">${f.tt}</div>
-      <div class="s">${f.ss}</div>
+      <div class="e">${f.e}</div><div class="t">${T('ft_'+CUR_TOOL+'_'+i,f.tt)}</div>
+      <div class="s">${T('fs_'+CUR_TOOL+'_'+i,f.ss)}</div>
       <div class="s2">${T('up_ways','Tap to choose · drag in · or paste')}</div>
     </div>
     <div class="dp" hidden><img alt=""><div class="dpi"><b></b><span></span></div>
@@ -4677,9 +4740,12 @@ function buildWork(id){
      Кредиты за него не берём: кадр стоит ноль. */
   if($('rlCanvas')){
     initRelight();
-    const P=[[0,35],[90,55],[180,35],[25,14]];
-    document.querySelectorAll('#wkPanel .pm').forEach((el,i)=>{
-      el.addEventListener('click',()=>{ const [a,e]=P[i]||P[0]; rlPreset(a,e); });
+    /* Углы больше НЕ дублируются здесь списком. Раньше стояло
+       `P=[[0,35],[90,55],[180,35],[25,14]]` — второй экземпляр тех же чисел
+       рядом с полем: поменяешь порядок кнопок, и свет поедет не туда, молча.
+       Берём прямо с кнопки, которую человек нажал. */
+    document.querySelectorAll('#wkPanel .ld .pm').forEach(el=>{
+      el.addEventListener('click',()=>rlPreset(+el.dataset.az, +el.dataset.elev));
     });
     const rr=$('rlRelief'), rg=$('rlGloss');
     if(rr) rr.oninput=e=>{ RL.relief=+e.target.value; RL.reload&&RL.reload(); };
@@ -4742,6 +4808,15 @@ function renderAll(){
   renderPresets(); renderFeed(); renderJournal(); renderPlans(); renderPicks();
   $('cmdTool').textContent = T('t_'+CMD_TOOL, FN.find(f=>f.id===CMD_TOOL).n);
   bindCmd();
+  /* 🔴 ОТКРЫТОЕ РАБОЧЕЕ ОКНО ТОЖЕ ПЕРЕСОБИРАЕМ. Раньше смена языка трогала
+     главную, витрину и журнал, а панель инструмента — нет: человек стоял
+     внутри «Поменять свет», переключал на русский и весь правый столбик
+     оставался английским. Перерисовываем, только если окно открыто, чтобы
+     не собирать его на каждом переключении языка вхолостую.
+     ⚠️ Цена решения: панель собирается заново, выбранные варианты и
+     присланный файл сбрасываются. Это заметно, но реже и понятнее, чем
+     интерфейс на двух языках одновременно. */
+  if(!$('v-work').classList.contains('hidden')) buildWork(CUR_TOOL);
 }
 function setLang(L){ LANG=L; try{localStorage.setItem('lang',L)}catch(e){} renderAll(); }
 const saved=(()=>{try{return localStorage.getItem('lang')}catch(e){return null}})();
