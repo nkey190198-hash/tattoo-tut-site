@@ -864,6 +864,22 @@ footer{border-top:1px solid var(--line);margin-top:48px;padding:20px 0 70px;
 /* Загруженный кадр ложится ПОД холст, а не вместо него: рисовать надо
    поверх своей работы. z-index явный, иначе канвас (без него) уходит под
    картинку по порядку документа и кисть «не рисует». */
+/* Смена света: два сведённых кадра, второй проявляется по наведению.
+   Кроссфейд 180 мс — быстрее читается как «переключили свет», медленнее
+   как «подгрузилась другая картинка». На тач-устройствах наведения нет,
+   поэтому там работает тап (класс .alt) и видна подсказка. */
+.swap{position:relative;width:100%;height:100%;overflow:hidden}
+.swap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  display:block}
+.swap img.b{opacity:0;transition:opacity .18s ease}
+.swap:hover img.b,.swap.alt img.b{opacity:1}
+.swaphint{position:absolute;right:9px;bottom:9px;z-index:2;
+  font:600 10px/1 'Inter',sans-serif;letter-spacing:.04em;padding:5px 8px;
+  border-radius:6px;background:rgba(6,10,7,.55);color:#f2f0e6;
+  transition:opacity .18s ease;pointer-events:none}
+.swap:hover .swaphint{opacity:0}
+@media(hover:none){ .swaphint{content:none} }
+
 /* Разворот: крупный кадр со стрелками + сетка всех ракурсов под ним. */
 .turn{position:absolute;inset:0;border-radius:var(--r);overflow:hidden;
   background:#fff;display:grid;place-items:center}
@@ -1610,10 +1626,15 @@ const CUBES = [
    fl:{frames:['img/demo_view_01.jpg','img/demo_view_02.jpg','img/demo_view_03.jpg']},
    d:'A flat sketch gets volume. Spin it, catch the angle the body actually needs, take the design back in the same style.',
    steps:['Drop in the sketch','Spin to the angle','Take it back flat, redrawn for that angle']},
-  /* ⏳ Ждёт второй кадр: владелец 10.09 просил, чтобы на наведение мышкой
-     свет ПЕРЕКЛЮЧАЛСЯ — та же собака, источник с другой стороны. Пока один
-     кадр; как появится borzoi_side.jpg, здесь станет пара с переключением. */
-  {id:'light', fxk:'sweep', e:'💡', n:'Relight', img:'img/borzoi.jpg',
+  /* Свет ПЕРЕКЛЮЧАЕТСЯ на наведение (заказ владельца 10.09). Второй кадр —
+     та же работа в контровом свете: источник за спиной, собака уходит в
+     глубокий тон, по верхнему контуру идёт светящаяся кромка. Контраст
+     намеренно резкий: за полсекунды видно, что делает инструмент.
+     🔴 Кадры СВЕДЕНЫ по геометрии (высота содержимого 995 px в обоих,
+     центры совпадают) — иначе при переключении рисунок прыгает, и эффект
+     читается как подмена картинки, а не как смена света. */
+  {id:'light', fxk:'sweep', e:'💡', n:'Relight',
+   img:'img/borzoi.jpg', img2:'img/borzoi_back.jpg',
    d:'Same design, different light. Soft studio for the portfolio, hard side light for the story, warm for a healed shot.',
    steps:['Drop in the shot','Pick the light','Keep the ink, move the mood']},
   /* Шторка приехала с плитки «Большая печать»: кадры совмещены (тот же
@@ -3431,6 +3452,11 @@ function renderCubes(){
         c.fl ? flHTML(c.fl, 'flcube_'+c.id)
         : c.ba ? baHTML(c.ba.a, c.ba.b, baLab(c.ba.la||'sketch'),
                         baLab(c.ba.lb||'transfer'), 'bacube_'+c.id)
+        : c.img2 ? `<div class="swap" onclick="this.classList.toggle('alt')">
+            <img class="ph" src="${c.img}" alt="" loading="lazy">
+            <img class="ph b" src="${c.img2}" alt="" loading="lazy">
+            <span class="swaphint">${T('hover_light','Hover to switch the light')}</span>
+          </div>`
         : c.img ? `<img class="ph" src="${c.img}" alt="" loading="lazy">`
         : fx(c.fxk)}</div>
       <div class="body">
