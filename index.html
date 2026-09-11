@@ -1902,10 +1902,12 @@ const WORK = {
     fields:[{t:'drop',l:'Design or photo',e:'🖼',tt:'Drop it in',ss:'A sketch or a shot of the healed piece'},
             {t:'text',l:'In your words — optional',
              ph:'What should happen: the snake uncoils and strikes past the camera…'},
-            {t:'pm',l:'The hook',v:[['No preset','my words only'],
-                                    ['Cobra strike','lunges at the camera'],['Spin & fly','twists up and out'],
-                                    ['Ink bloom','bleeds in like ink in water'],['Skin wake','the creature breathes'],
-                                    ['Neon pass','a light sweeps across'],['Camera dive','the camera falls in']]},
+            /* Список хуков НЕ дублируется: он собирается из PRESETS — тех
+               же двенадцати, что стоят плитками на главной. Иначе человек
+               выбирает на витрине «Карманного стража», заходит внутрь и не
+               находит его в списке. Один источник — расходиться нечему. */
+            {t:'pm',l:'The hook',v:[{k:'nopreset',n:'No preset',h:'my words only'},
+                                    ...PRESETS.map(p=>({k:p.id,n:p.n,h:p.h}))]},
             {t:'sel',l:'Length',v:['5 seconds','10 seconds','15 seconds'],def:0},
             {t:'chips',l:'Format',v:['9:16','1:1','16:9']}],
     cta:'Animate',
@@ -2056,6 +2058,13 @@ ru:{
  p_sky:'Воздушный возврат',      ph_sky:'Птица облетает комнату и возвращается на запястье',
  p_heist:'Чернильная кража',     ph_heist:'Зверёк крадёт кисть и убегает по руке',
  p_shelter:'Цветочный купол',    ph_shelter:'Цветок становится зонтом над рукой',
+ /* Оживление тату — русские подписи полей. Номера полей: 0 загрузка,
+    1 своя строка, 2 хуки, 3 длительность, 4 формат. */
+ ft_animate_0:'Закинь сюда', fs_animate_0:'Эскиз или фото зажившей работы',
+ fl_in_your_words_optional:'Своими словами — по желанию',
+ fp_animate_1:'Что должно произойти: змея разворачивается и бьёт мимо камеры…',
+ p_nopreset:'Без пресета', ph_nopreset:'только мои слова',
+ fv_animate_3_0:'5 секунд', fv_animate_3_1:'10 секунд', fv_animate_3_2:'15 секунд',
  rl_save:'Сохранить кадр', rl_nogl:'В этом браузере выключен WebGL',
  /* 🔴 ЗНАЧЕНИЯ ПОЛЕЙ ПЕРЕВОДЯТСЯ ТОЛЬКО ТЕПЕРЬ (находка владельца 11.09).
     Через словарь шли одни ЗАГОЛОВКИ полей, а варианты внутри печатались
@@ -2230,7 +2239,7 @@ ru:{
  cta_link:'Сделать ссылку',      note_link:'Бесплатно. Списываем только когда клиент сделает картинку',
  cta_render3d:'Собрать разворот',note_render3d:'Покрути и забери нужный угол',
  cta_light:'Поставить свет',     note_light:'Чернила не трогаем, двигаем только свет вокруг',
- cta_animate:'Оживить',          note_animate:'Хук должен зайти в первые две секунды',
+ cta_animate:'Оживить',          note_animate:'Одни слова — сделаем ровно их. Слова и хук вместе — возьмём оба, при споре выигрывает хук. В любом случае хук заходит в первые две секунды.',
  cta_retouch:'Обработать',       note_retouch:'Уровень портфолио, кожа держит фактуру',
  cta_tiling:'Разложить',         note_tiling:'Бесплатно. Платишь только за то, что сделало сам рисунок',
  cta_palette:'Собрать палитру',  note_palette:'Бесплатно. Выйдут коды красок, по ним намешаешь',
@@ -4566,15 +4575,21 @@ function field(f,i){
   const l=`<label>${flab(f.l)}</label>`;
   if(f.t==='text' && f.inp) return `<div class="fld">${l}
     <input type="text" placeholder="${f.ph}"></div>`;
-  if(f.t==='text') return `<div class="fld">${l}<textarea placeholder="${f.ph}"></textarea></div>`;
+  if(f.t==='text') return `<div class="fld">${l}<textarea placeholder="${T('fp_'+CUR_TOOL+'_'+i,f.ph)}"></textarea></div>`;
   if(f.t==='sel') return `<div class="fld">${l}<select>${
-    f.v.map((o,j)=>`<option${j===f.def?' selected':''}>${o}</option>`).join('')}</select></div>`;
+    f.v.map((o,j)=>`<option${j===f.def?' selected':''}>${T('fv_'+CUR_TOOL+'_'+i+'_'+j,o)}</option>`).join('')}</select></div>`;
   if(f.t==='chips') return `<div class="fld">${l}<div class="chips">${
     f.v.map((o,j)=>`<span class="chip${j===0?' on':''}" onclick="pickChip(this)">${o}</span>`)
       .join('')}</div></div>`;
+  /* Вариант может прийти парой ['Имя','пояснение'] или объектом с ключом
+     словаря — тогда подпись переводится. Ключ нужен, чтобы список хуков в
+     инструменте назывался ТЕМИ ЖЕ словами, что плитки пресетов на главной. */
   if(f.t==='pm') return `<div class="fld">${l}<div class="presetmini">${
-    f.v.map(([n,h],j)=>`<div class="pm${j===0?' on':''}" onclick="pickChip(this)">
-      <div class="n">${n}</div><div class="h">${h}</div></div>`).join('')}</div></div>`;
+    f.v.map((o,j)=>{ const [n,h] = Array.isArray(o) ? o : [o.n,o.h];
+      const nn = o.k ? T('p_'+o.k,n)  : n;
+      const hh = o.k ? T('ph_'+o.k,h) : h;
+      return `<div class="pm${j===0?' on':''}" onclick="pickChip(this)">
+      <div class="n">${nn}</div><div class="h">${hh}</div></div>`;}).join('')}</div></div>`;
   /* 🔴 СВЕТ НАДО ПОКАЗЫВАТЬ, А НЕ ОПИСЫВАТЬ (заказ владельца 11.09).
      Было четыре подписи «From the right / From above / From the left / Low
      and hard» — человек не понимает, что выберет, пока не ткнёт все четыре.
