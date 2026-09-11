@@ -277,6 +277,15 @@ nav.main a[data-mega]::after{content:"";display:inline-block;width:0;height:0;
   cursor:pointer;border:1px solid var(--line);transition:.18s;
   background:linear-gradient(160deg,var(--media-a),var(--media-b))}
 .preset:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+/* Пара кадров: спокойный лежит снизу, кульминация проявляется сверху.
+   Кроссфейд, а не подмена: резкая смена читается как сбой загрузки.
+   На тач-экранах наведения нет — там кульминация показывается по нажатию,
+   иначе половина людей увидела бы только статичный кадр. */
+.preset .pa,.preset .pb{position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:block}
+.preset .pb{opacity:0;transition:opacity .22s ease}
+.preset:hover .pb,.preset:focus-visible .pb{opacity:1}
+@media (hover:none){ .preset:active .pb{opacity:1} }
 .preset .cap{position:absolute;left:0;right:0;bottom:0;z-index:3;
   padding:26px 10px 10px;color:#f2f0e6;
   background:linear-gradient(transparent,rgba(6,10,7,.9) 48%)}
@@ -1336,7 +1345,7 @@ html{scrollbar-gutter:stable}
   <section class="wrap sec">
     <div class="sec-hd">
       <h2 data-i="prs">Video presets</h2>
-      <span class="s" data-i="prs_sub">Five seconds. The hook lands in the first two.</span>
+      <span class="s" data-i="prs_sub">A story, not an effect. The hook lands in the first two seconds.</span>
       <span class="more" onclick="openWork('animate')" data-i="prs_more">Open the studio →</span>
     </div>
     <div class="presets" id="presets"></div>
@@ -1617,15 +1626,33 @@ const STYLES = ['fine-line','blackwork','dotwork','ornamental','neo-traditional'
   'realism','japanese','chicano','tribal','neo-tribal','neo-sigilism',
   'geometric','lettering','trash polka','slash-cut','cartoon','pop art'];
 
-/* пресеты оживления — хук в первые две секунды */
+/* ПРЕСЕТЫ ОЖИВЛЕНИЯ — поставка 10.09, двенадцать сюжетных.
+   У каждого ПАРА кадров: `a` — спокойный, работа на коже читается; `b` —
+   кульминация. Плитка показывает `a`, на наведение меняет на `b`: человек
+   понимает пресет за полсекунды, не читая.
+   `fit` — для каких работ пресет вообще имеет смысл. Поле не украшение:
+   «Настольная дуэль» требует полнофигурного воина, и если предложить её
+   владельцу леттеринга, движок вернёт мусор, а виноватыми будем мы.
+   `sec` — рекомендованная длина постановки, не обещание времени генерации.
+   Старые шесть (кобра, вихрь, разлив туши, кожа дышит, неон, нырок) сняты:
+   это были эффекты без сюжета и без обложек. Их ключи в словарях остались
+   неиспользованными — чистить регексом по десяти языкам опаснее, чем
+   оставить: значения там с апострофами и переносами. */
 const PRESETS = [
-  {id:'cobra', fxk:'snake', n:'Cobra strike',  h:'The piece lunges straight at the camera'},
-  {id:'spin',  fxk:'ring',  n:'Spin &amp; fly',    h:'The object twists up and leaves the frame'},
-  {id:'bloom', fxk:'blob',  n:'Ink bloom',     h:'Lines bleed in like ink dropped in water'},
-  {id:'wake',  fxk:'eye',   n:'Skin wake',     h:'The creature breathes, the skin moves with it'},
-  {id:'neon',  fxk:'bar',   n:'Neon pass',     h:'A light sweeps across and the piece flares'},
-  {id:'dive',  fxk:'grid',  n:'Camera dive',   h:'The camera falls into the design'},
-];
+  {id:'guardian', sec:10, n:'Pocket Guardian',  h:'The beast steps onto the palm and guards its owner', fit:'beast'},
+  {id:'duel',     sec:10, n:'Desk Duel',        h:'A tattooed gladiator parries a pencil in your hand', fit:'figure'},
+  {id:'giant',    sec:10, n:'Giant Check',      h:'A small warrior stops a giant finger', fit:'figure'},
+  {id:'arsenal',  sec:10, n:'Ink Arsenal',      h:'The blade leaves the forearm and lands in the hand', fit:'weapon'},
+  {id:'agent',    sec:15, n:'Agent Turn',       h:'The inked weapon turns real in the agent grip', fit:'weapon'},
+  {id:'courier',  sec:5,  n:'Petal Courier',    h:'Flowers step out of the skin into the palm', fit:'floral'},
+  {id:'signature',sec:5,  n:'Living Signature', h:'The lettering lifts off and settles in the hand', fit:'lettering'},
+  {id:'ornament', sec:10, n:'Ornament Guard',   h:'The mandala becomes a shield and blocks a ball', fit:'ornament'},
+  {id:'pact',     sec:10, n:'Portrait Pact',    h:'The portrait steps out and nods back at you', fit:'portrait'},
+  {id:'sky',      sec:10, n:'Sky Return',       h:'The bird circles the room and returns to the wrist', fit:'beast'},
+  {id:'heist',    sec:10, n:'Ink Heist',        h:'A small creature steals the brush and runs up the arm', fit:'beast'},
+  {id:'shelter',  sec:10, n:'Petal Shelter',    h:'The flower opens into an umbrella over the hand', fit:'floral'},
+].map((p,i)=>{ const n=String(i+1).padStart(2,'0');
+  return {...p, a:`img/presets/preset_${n}_a.jpg`, b:`img/presets/preset_${n}_b.jpg`}; });
 
 /* апсы кубиками — открыл и сразу понял, что это */
 const CUBES = [
@@ -2016,6 +2043,19 @@ ru:{
  ss_skin:'Под кожу', ssh_skin:'Поправка на рельеф и натяжение',
  rl_t:'Веди пальцем по эскизу',
  rl_s:'Свет едет за тобой. Толщина штриха становится рельефом.',
+ /* Двенадцать сюжетных пресетов — имена и строки из поставки 10.09. */
+ p_guardian:'Карманный страж',   ph_guardian:'Зверь сходит на ладонь и защищает хозяина',
+ p_duel:'Настольная дуэль',      ph_duel:'Тату-гладиатор парирует удар палочкой в руке',
+ p_giant:'Стоп, гигант',         ph_giant:'Маленький воин останавливает огромный палец',
+ p_arsenal:'Чернильный арсенал', ph_arsenal:'Меч сходит с предплечья в руку',
+ p_agent:'Поворот агента',       ph_agent:'Оружие с тату оказывается в руке агента',
+ p_courier:'Цветочный курьер',   ph_courier:'Цветы выходят из кожи прямо в ладонь',
+ p_signature:'Живая подпись',    ph_signature:'Надпись сходит с кожи и ложится в ладонь',
+ p_ornament:'Орнаментальный щит',ph_ornament:'Орнамент становится щитом и отбивает мяч',
+ p_pact:'Живой собеседник',      ph_pact:'Портрет выходит в ладонь и отвечает кивком',
+ p_sky:'Воздушный возврат',      ph_sky:'Птица облетает комнату и возвращается на запястье',
+ p_heist:'Чернильная кража',     ph_heist:'Зверёк крадёт кисть и убегает по руке',
+ p_shelter:'Цветочный купол',    ph_shelter:'Цветок становится зонтом над рукой',
  rl_save:'Сохранить кадр', rl_nogl:'В этом браузере выключен WebGL',
  /* 🔴 ЗНАЧЕНИЯ ПОЛЕЙ ПЕРЕВОДЯТСЯ ТОЛЬКО ТЕПЕРЬ (находка владельца 11.09).
     Через словарь шли одни ЗАГОЛОВКИ полей, а варианты внутри печатались
@@ -2048,7 +2088,7 @@ ru:{
  tools_sub:'Всё, что съедает время: эскизы, трафареты, примерки, ролики.',
  ups:'Ещё умеем',
  ups_sub:'Открываешь и сразу видно, что это и как этим работать.',
- prs:'Видео-пресеты', prs_sub:'Пять секунд. Хук заходит в первые две.',
+ prs:'Видео-пресеты', prs_sub:'Сюжет, а не эффект. Хук заходит в первые две секунды.',
  prs_more:'Открыть студию →',
  whats_new:'Что нового', weekly:'обновляем каждую неделю',
  jrn:'Журнал',
@@ -3502,8 +3542,10 @@ function renderCubes(){
 
 function renderPresets(){
   $('presets').innerHTML = PRESETS.map(p=>`
-    <article class="preset" onclick="openWork('animate')">
-      ${fx(p.fxk)}<span class="sec-badge">5s</span>
+    <article class="preset" onclick="openWork('animate')" tabindex="0">
+      <img class="pa" src="${p.a}" alt="" loading="lazy">
+      <img class="pb" src="${p.b}" alt="" loading="lazy">
+      <span class="sec-badge">${p.sec}s</span>
       <div class="cap"><div class="n">${T('p_'+p.id,p.n)}</div>
         <div class="h">${T('ph_'+p.id,p.h)}</div></div>
     </article>`).join('');
